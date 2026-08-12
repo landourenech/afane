@@ -117,7 +117,7 @@ export function ShopComposent({
 
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center  ">
             
-               <h2 className="  max-md:hidden">
+               <h2 className=" gi max-md:hidden">
               Boutique AFANE
             </h2>
             <SearchBar
