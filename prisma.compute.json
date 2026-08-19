@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "afane-full-next",
+    "framework": "nextjs",
+    "httpPort": 3000,
+    "build": {
+      "command": "pnpm run build"
+    }
+  }
+}
