@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback } f
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut, 
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -26,7 +28,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  // resendVerificationEmail: () => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
   logout: () => Promise<void>;
   completeOnboarding: (data: any) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -41,7 +43,7 @@ const AuthContext = createContext<AuthContextType>({
   signInWithEmail: async () => {},
   signUpWithEmail: async () => {},
   resetPassword: async () => {},
-  // resendVerificationEmail: async () => {},
+  resendVerificationEmail: async () => {},
   logout: async () => {},
   completeOnboarding: async () => {},
   refreshProfile: async () => {},
@@ -54,6 +56,7 @@ const COOKIE_NAMES = {
   PROFILE_ID: 'kc_profile_id',
   USER_ROLE: 'kc_user_role',
   ONBOARDING_DONE: 'kc_onboarding_done',
+  USERNAME: 'kc_username',
 };
 
 const setCookie = (name: string, value: string, days: number = 7) => {
@@ -104,6 +107,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const syncInProgress = useRef(false);
   const supabase = createClient();
+
+  // Gérer le résultat de la redirection Google
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log('✅ Connexion Google via redirect réussie');
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Erreur redirect Google:', error);
+      });
+  }, []);
 
   // Synchronisation SANS cookies
   const syncWithoutCookies = useCallback(async (firebaseUser: FirebaseUser) => {
@@ -200,6 +216,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setCookie(COOKIE_NAMES.PROFILE_ID, data.profile.id);
           setCookie(COOKIE_NAMES.USER_ROLE, data.profile.role || 'user');
           setCookie(COOKIE_NAMES.ONBOARDING_DONE, (data.profile.onboarding_completed || false).toString());
+          
+          // Sauvegarder le username
+          if (data.profile.username) {
+            setCookie(COOKIE_NAMES.USERNAME, data.profile.username);
+          }
         }
       } else {
         console.error('❌ API sync échouée:', response.status);
@@ -245,11 +266,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error('❌ Erreur connexion Google:', error);
-      throw error;
+    } catch (error: any) {
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+        console.log('⚠️ Popup bloqué, utilisation de redirect');
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error('❌ Erreur connexion Google:', error);
+        throw error;
+      }
     }
   };
 
@@ -266,10 +294,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUpWithEmail = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Envoyer l'email de vérification
       await sendEmailVerification(result.user);
-      
       console.log('✅ Inscription réussie, email de vérification envoyé');
       setIsEmailVerified(false);
     } catch (error) {
@@ -288,23 +313,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-//  const resendVerificationEmail = async () => {
-//   if (user && !user.emailVerified) {
-//     try {
-//       await sendEmailVerification(user);
-//       console.log('✅ Email de vérification renvoyé');
-//       return { success: true, message: 'Email envoyé avec succès' };
-//     } catch (error: any) {
-//       console.error('❌ Erreur envoi vérification:', error);
-      
-//       if (error.code === 'auth/too-many-requests') {
-//         throw new Error('Trop de demandes. Veuillez attendre quelques minutes avant de réessayer.');
-//       }
-      
-//       throw error;
-//     }
-//   }
-// };
+  const resendVerificationEmail = async (): Promise<void> => {
+    if (user && !user.emailVerified) {
+      try {
+        await sendEmailVerification(user);
+        console.log('✅ Email de vérification renvoyé');
+      } catch (error: any) {
+        console.error('❌ Erreur envoi vérification:', error);
+        
+        if (error.code === 'auth/too-many-requests') {
+          throw new Error('Trop de demandes. Veuillez attendre quelques minutes avant de réessayer.');
+        }
+        
+        throw error;
+      }
+    }
+  };
 
   const logout = async () => {
     try {
@@ -347,9 +371,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (hasCookieConsent()) {
         setCookie(COOKIE_NAMES.ONBOARDING_DONE, 'true');
         setCookie(COOKIE_NAMES.USER_ROLE, updatedProfile.role);
+        
+        if (updatedProfile.username) {
+          setCookie(COOKIE_NAMES.USERNAME, updatedProfile.username);
+        }
       }
       
-      window.location.href = '/dashboard';
+      // ✅ Rediriger vers /{username} au lieu de /dashboard
+      const username = updatedProfile.username || updatedProfile.id;
+      window.location.href = `/${username}`;
     } catch (error) {
       console.error('❌ Erreur onboarding:', error);
       throw error;
@@ -372,7 +402,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithEmail,
       signUpWithEmail,
       resetPassword,
-      // resendVerificationEmail,
+      resendVerificationEmail,
       logout,
       completeOnboarding,
       refreshProfile

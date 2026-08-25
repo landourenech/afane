@@ -18,59 +18,33 @@ export default function CookiePolicyPage() {
 
           <section>
             <h2 className="text-xl font-semibold mb-3">2. Types de cookies utilisés</h2>
-            
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded">
                 <h3 className="font-medium">Cookies nécessaires</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Indispensables au fonctionnement de la plateforme :
-                  <ul className="list-disc list-inside mt-2">
-                    <li>kc_sync_uid : Identifiant de synchronisation</li>
-                    <li>kc_sync_time : Horodatage de la dernière synchronisation</li>
-                    <li>kc_profile_id : Identifiant du profil utilisateur</li>
-                    <li>kc_user_role : Rôle de l'utilisateur</li>
-                    <li>kc_onboarding_done : État de l'onboarding</li>
-                  </ul>
+                  Indispensables au fonctionnement de la plateforme (authentification, session).
                 </p>
               </div>
-
               <div className="p-4 bg-gray-50 rounded">
                 <h3 className="font-medium">Cookies fonctionnels</h3>
                 <p className="text-sm text-gray-600 mt-1">
                   Mémorisent vos préférences pour améliorer votre expérience.
                 </p>
               </div>
-
-              <div className="p-4 bg-gray-50 rounded">
-                <h3 className="font-medium">Cookies analytiques</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Nous aident à comprendre l'utilisation de la plateforme pour l'améliorer.
-                </p>
-              </div>
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">3. Durée de conservation</h2>
+            <h2 className="text-xl font-semibold mb-3">3. Gestion des cookies</h2>
             <p className="text-gray-600">
-              Les cookies sont conservés pour une durée maximale de 7 jours, 
-              sauf si vous les supprimez manuellement via votre navigateur.
+              Vous pouvez à tout moment modifier vos préférences via votre navigateur.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-3">4. Gestion des cookies</h2>
+            <h2 className="text-xl font-semibold mb-3">4. Contact</h2>
             <p className="text-gray-600">
-              Vous pouvez à tout moment modifier vos préférences en matière de cookies 
-              via la bannière de consentement ou les paramètres de votre navigateur.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">5. Contact</h2>
-            <p className="text-gray-600">
-              Pour toute question concernant notre politique de cookies, 
-              contactez-nous à : contact@kimba.ga
+              Pour toute question : contact@kimba.ga
             </p>
           </section>
         </div>

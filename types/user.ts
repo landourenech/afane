@@ -9,11 +9,13 @@ export interface UserProfile {
   id: string;
   firebase_uid: string;
   email: string;
+    username?: string; 
   display_name?: string;
   avatar_url?: string;
   
   // Informations de base
   phone?: string;
+  bio?: string;
   date_of_birth?: string;
   gender?: 'male' | 'female' | 'other';
   
