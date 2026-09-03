@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Megaphone, ArrowRight, Sparkles, Tag } from 'lucide-react';
 import Link from 'next/link';
 
@@ -9,6 +9,7 @@ interface AdBannerProps {
   className?: string;
   autoShow?: boolean;
   delay?: number;
+  adId?: string;  // ✅ Ajouté
 }
 
 export function AdBanner({ 
@@ -16,43 +17,51 @@ export function AdBanner({
   className = '',
   autoShow = false,
   delay = 3000,
+  adId = 'default-ad',
 }: AdBannerProps) {
-  const [isVisible, setIsVisible] = useState(!autoShow);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (autoShow && !isDismissed) {
+    // Vérifier si déjà fermé dans localStorage
+    const storageKey = `ad_dismissed_${adId}`;
+    const dismissed = localStorage.getItem(storageKey);
+    
+    if (dismissed === 'true') {
+      setIsVisible(false);
+      return;
+    }
+
+    if (autoShow) {
       const timer = setTimeout(() => {
         setIsVisible(true);
       }, delay);
       return () => clearTimeout(timer);
+    } else {
+      setIsVisible(true);
     }
-  }, [autoShow, delay, isDismissed]);
+  }, [autoShow, delay, adId]);
 
-  // ✅ Fonction de fermeture qui met à jour l'état local
-  const handleClose = () => {
-    console.log('Fermeture de la publicité');
+  const handleClose = useCallback(() => {
     setIsVisible(false);
-    setIsDismissed(true);
-  };
+    localStorage.setItem(`ad_dismissed_${adId}`, 'true');
+  }, [adId]);
 
-  // Si fermé, ne rien afficher
-  if (!isVisible || isDismissed) return null;
+  if (!isVisible) return null;
 
-  // BANNIÈRE
+  // BANNIÈRE HORIZONTALE
   if (variant === 'banner') {
     return (
-      <div className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[var(--color-quaternary)] via-[var(--color-secondary)] to-[var(--color-quaternary)] p-4 md:p-6 shadow-lg ${className}`}>
+      <div className={`relative overflow-hidden rounded-xl bg-gradient-to-r from-[#0C4428] via-[#E86C00] to-[#0C4428] p-4 md:p-6 shadow-lg ${className}`}>
         <button
           onClick={handleClose}
-          className="absolute top-2 right-2 p-1 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors z-10"
-          aria-label="Fermer"
+          className="absolute top-2 right-2 p-1.5 bg-white/20 rounded-full text-white hover:bg-white/40 transition-colors z-10"
+          aria-label="Fermer la publicité"
         >
           <X className="h-4 w-4" />
         </button>
         
         <div className="flex items-center gap-4">
-          <div className="hidden sm:flex p-3 bg-white/20 rounded-full">
+          <div className="hidden sm:flex p-3 bg-white/20 rounded-full flex-shrink-0">
             <Megaphone className="h-8 w-8 text-white" />
           </div>
           <div className="flex-1 text-white">
@@ -68,7 +77,8 @@ export function AdBanner({
           </div>
           <Link
             href="/promo"
-            className="hidden md:flex items-center gap-2 px-4 py-2 bg-white text-[var(--color-secondary)] rounded-lg font-semibold text-sm hover:bg-opacity-90 transition-all"
+            onClick={handleClose}
+            className="hidden md:flex items-center gap-2 px-4 py-2 bg-white text-[#E86C00] rounded-lg font-semibold text-sm hover:bg-opacity-90 transition-all flex-shrink-0"
           >
             J'en profite
             <ArrowRight className="h-4 w-4" />
@@ -78,62 +88,65 @@ export function AdBanner({
     );
   }
 
-  // POP-UP
+  // POP-UP MODAL
   if (variant === 'popup') {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4" onClick={handleClose}>
+      <div 
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
+        onClick={handleClose}
+      >
         <div 
           className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Bouton fermer */}
           <button
             onClick={handleClose}
-            className="absolute top-3 right-3 z-10 p-1.5 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors"
+            className="absolute top-3 right-3 z-10 p-1.5 bg-black/20 rounded-full text-white hover:bg-black/40 transition-colors"
             aria-label="Fermer"
           >
             <X className="h-5 w-5" />
           </button>
 
-          {/* Image de fond */}
-          <div className="relative h-40 bg-gradient-to-r from-[var(--color-quaternary)] to-[var(--color-secondary)]">
+          <div className="relative h-40 bg-gradient-to-r from-[#0C4428] to-[#E86C00]">
             <div className="absolute inset-0 flex items-center justify-center">
               <Sparkles className="h-16 w-16 text-white opacity-50" />
             </div>
           </div>
 
-          {/* Contenu */}
           <div className="p-6 text-center">
-            <div className="inline-flex p-3 bg-[var(--color-secondary)]/10 rounded-full mb-4">
-              <Tag className="h-6 w-6 text-[var(--color-secondary)]" />
+            <div className="inline-flex p-3 bg-[#E86C00]/10 rounded-full mb-4">
+              <Tag className="h-6 w-6 text-[#E86C00]" />
             </div>
             <h3 className="text-xl font-bold text-gray-900">
               🎁 Offre de bienvenue
             </h3>
             <p className="text-gray-600 mt-2">
-              Inscrivez-vous maintenant et recevez <strong>-20%</strong> sur votre première commande !
+              Recevez <strong>-20%</strong> sur votre première commande !
             </p>
             <Link
               href="/signup"
               onClick={handleClose}
-              className="inline-flex items-center gap-2 mt-4 px-6 py-2.5 bg-[var(--color-secondary)] text-white rounded-lg font-semibold hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-2 mt-4 px-6 py-2.5 bg-[#E86C00] text-white rounded-lg font-semibold hover:opacity-90 transition-all"
             >
-              Créer un compte gratuit
+              Créer un compte
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <p className="text-xs text-gray-400 mt-3">
-              * Offre valable jusqu'à la fin du mois
-            </p>
+            <button
+              onClick={handleClose}
+              className="block w-full mt-3 text-sm text-gray-400 hover:text-gray-600"
+            >
+              Non merci, je préfère parcourir
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  // INLINE
+  // PUBLICITÉ INLINE
   if (variant === 'inline') {
     return (
-      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed border-[var(--color-secondary)]/30 bg-[var(--color-secondary)]/5 p-4 ${className}`}>
+      <div className={`relative overflow-hidden rounded-xl border-2 border-dashed border-[#E86C00]/30 bg-[#E86C00]/5 p-4 ${className}`}>
         <button
           onClick={handleClose}
           className="absolute top-2 right-2 p-1 hover:bg-gray-200 rounded-full transition-colors"
@@ -143,20 +156,20 @@ export function AdBanner({
         </button>
         
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[var(--color-secondary)]/10 rounded-lg">
-            <Megaphone className="h-5 w-5 text-[var(--color-secondary)]" />
+          <div className="p-2 bg-[#E86C00]/10 rounded-lg flex-shrink-0">
+            <Megaphone className="h-5 w-5 text-[#E86C00]" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">
               📢 Espace publicitaire
             </p>
             <p className="text-xs text-gray-500">
-              Votre publicité ici - Contactez-nous
+              Votre publicité ici
             </p>
           </div>
           <Link
             href="/advertise"
-            className="text-xs font-medium text-[var(--color-secondary)] hover:underline"
+            className="text-xs font-medium text-[#E86C00] hover:underline flex-shrink-0"
           >
             En savoir plus
           </Link>
