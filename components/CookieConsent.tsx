@@ -129,12 +129,12 @@ export default function CookieConsent() {
 
       {/* Modal de personnalisation */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-quaternary)]/10 bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
+              <p className="">
                 Préférences des cookies
-              </h2>
+              </p>
               <button
                 onClick={() => setShowSettings(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -147,7 +147,7 @@ export default function CookieConsent() {
               {/* Cookies nécessaires */}
               <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-md">
                 <div className="flex-1">
-                  <h3 className="font-medium text-gray-900">
+                  <h3 className="font-medium text-[var(--color-secondary)]"> 
                     Cookies nécessaires
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -217,7 +217,7 @@ export default function CookieConsent() {
               </button>
               <button
                 onClick={() => saveConsent(preferences)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                className="px-4 py-2 bg-[var(--color-quaternary)] text-white rounded-md hover:bg-green-700"
               >
                 Enregistrer les préférences
               </button>
