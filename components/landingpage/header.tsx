@@ -161,7 +161,7 @@ export default function Header() {
                     handleLogout();
                     setIsMenuOpen(false);
                   }}
-                  className="w-full py-2.5 text-sm text-gray-500 hover:text-red-600 transition-colors"
+                  className="w-full py-2.5 text-sm text-[var(--color-secondary)] hover:text-red-600 transition-colors"
                 >
                   Se déconnecter
                 </button>
