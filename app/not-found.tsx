@@ -28,7 +28,7 @@ export default function NotFound() {
             </h2>
           </div>
           <p className="text-white/80 text-base md:text-lg max-w-md mx-auto">
-            Désolé, la page que vous recherchez n'existe pas ou a été déplacée.
+            Désolé, la page que vous recherchez n'existe pas ou est en construction. Vous pouvez retourner à la page d'accueil ou explorer notre boutique pour découvrir nos produits et services.
           </p>
         </div>
 
