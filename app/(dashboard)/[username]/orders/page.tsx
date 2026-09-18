@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
-import { DataTable } from '@/components/dashboard/table';
+import { DataTable } from '@/components/shared/table';
 import { 
   ShoppingCart, 
   Search, 

@@ -11,7 +11,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 
-import { AppSidebar } from '@/components/dashboard/AppSidebar';
+import { AppSidebar } from '@/components/layout/sidebar';
 
 export default function DashboardLayout({
   children,
