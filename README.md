@@ -1,3 +1,143 @@
+# 🌾 AFANE - Plateforme Agricole
+
+<div align="center">
+
+---
+
+## 📋 Table des matières
+
+- [À propos](#-à-propos)
+- [Fonctionnalités](#-fonctionnalités)
+- [Technologies](#-technologies)
+- [Prérequis](#-prérequis)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Structure du projet](#-structure-du-projet)
+- [Scripts disponibles](#-scripts-disponibles)
+- [Déploiement](#-déploiement)
+- [Contribution](#-contribution)
+- [Licence](#-licence)
+
+---
+
+## 🎯 À propos
+
+**AFANE** est une plateforme numérique agricole conçue pour faciliter les échanges commerciaux entre les différents acteurs du secteur agricole. Elle permet aux producteurs, coopératives, acheteurs, fournisseurs d'intrants et conseillers agricoles de se connecter, d'échanger et de développer leurs activités.
+
+### Objectifs
+
+- 🌱 Faciliter la commercialisation des produits agricoles
+- 🤝 Encourager les ventes collectives entre producteurs
+- 💰 Réduire les coûts d'achat des intrants grâce aux achats groupés
+- 📚 Améliorer l'accès aux conseils techniques agricoles
+- 🗺️ Produire une cartographie numérique des exploitations
+
+---
+
+## ✨ Fonctionnalités
+
+### 🔐 Authentification
+
+- Connexion avec Google (Firebase)
+- Connexion Email/Mot de passe
+- Vérification d'email
+- Réinitialisation de mot de passe
+- Onboarding personnalisé par rôle
+
+### 👥 Gestion des utilisateurs
+
+- 7 types de rôles : Utilisateur, Producteur, Coopérative, Acheteur, Fournisseur, Conseiller, Admin
+- Profils personnalisables
+- Système de vérification
+- Gestion des permissions
+
+### 🛍️ Marketplace
+
+- Publication d'annonces avec photos
+- Vente individuelle et en groupe
+- Système de commandes
+- Gestion des stocks
+- Catégorisation automatique (IA)
+
+### 💬 Communication
+
+- Messagerie entre utilisateurs
+- Notifications en temps réel
+- Système d'alertes
+
+### 📊 Tableaux de bord
+
+- Statistiques personnalisées par rôle
+- Suivi des ventes et commandes
+- Analyses de performance
+
+### 🤖 Intelligence Artificielle
+
+- Catégorisation automatique des produits
+- Suggestion de tags
+- Analyse de prix
+
+---
+
+## 🛠️ Technologies
+
+### Frontend
+
+| Technologie  | Version | Usage            |
+| ------------ | ------- | ---------------- |
+| Next.js      | 16.3.2  | Framework React  |
+| React        | 19.2.8  | Bibliothèque UI |
+| TypeScript   | 5       | Typage statique  |
+| Tailwind CSS | 4       | Styling          |
+| shadcn/ui    | 4.19    | Composants UI    |
+| Lucide React | 1.33    | Icônes          |
+
+### Backend & Base de données
+
+| Technologie | Version | Usage                       |
+| ----------- | ------- | --------------------------- |
+| Supabase    | 2.112   | Base de données PostgreSQL |
+| Firebase    | 12.18   | Authentification            |
+| Next.js API | -       | Routes API                  |
+
+### IA & Services
+
+| Technologie           | Usage            |
+| --------------------- | ---------------- |
+| Cloudflare Workers AI | Catégorisation  |
+| Hugging Face          | Analyse de texte |
+
+### Outils
+
+| Technologie | Usage                   |
+| ----------- | ----------------------- |
+| pnpm        | Gestionnaire de paquets |
+| ESLint      | Linting                 |
+| Prettier    | Formatage               |
+
+---
+
+## 📦 Prérequis
+
+Avant de commencer, assurez-vous d'avoir :
+
+- **Node.js** 20.x ou supérieur
+- **pnpm** 9.x ou supérieur
+- **Compte Supabase** ([créer](https://supabase.com))
+- **Compte Firebase** ([créer](https://firebase.google.com))
+- **Git**
+
+---
+
+## 🚀 Installation
+
+### 1. Cloner le projet
+
+```bash
+git clone https://github.com/landourenech/afane.git
+cd afane
+```
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

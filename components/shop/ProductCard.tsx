@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { ShoppingBag, Eye, Heart } from 'lucide-react';
-import { ShopItem } from '@/lib/shop/types';
+import { ShopItem } from '@/types/shop/types';
 import { formatPrice, getStockLabel } from '@/lib/shop/utils';
 
 interface ProductCardProps {

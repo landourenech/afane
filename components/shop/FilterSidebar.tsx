@@ -2,7 +2,7 @@
 
 import { PriceRangeFilter } from './PriceRangeFilter';
 import { CategoryTabs } from './CategoryTabs';
-import { ShopItem } from '@/lib/shop/types';
+import { ShopItem } from '@/types/shop/types';
 
 interface FilterSidebarProps {
   items: ShopItem[];

@@ -1,5 +1,5 @@
 // API calls - Backend
-import { ShopFilters, ShopItem, ShopResponse } from './types';
+import { ShopFilters, ShopItem, ShopResponse } from '../../types/shop/types';
 
 const BASE_URL = '/api/shop';
 

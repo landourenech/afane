@@ -1,7 +1,7 @@
 'use client';
 
 import { ProductCard } from './ProductCard';
-import { ShopItem } from '@/lib/shop/types';
+import { ShopItem } from '@/types/shop/types';
 
 interface ProductGridProps {
   items: ShopItem[];

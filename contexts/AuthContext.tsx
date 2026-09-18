@@ -14,7 +14,7 @@ import {
   sendEmailVerification,
   User as FirebaseUser 
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/lib/firebase/client';
 import { createClient } from '@/lib/supabase/client';
 import { UserProfile } from '@/types/user';
 

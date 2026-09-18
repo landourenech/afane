@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     '192.168.188.199',
     'localhost',
     '127.0.0.1',
+    'https://afane.vercel.app/'
   ],
   
   images: {

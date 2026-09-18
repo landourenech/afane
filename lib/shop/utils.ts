@@ -1,4 +1,4 @@
-import { ShopItem } from './types';
+import { ShopItem } from '../../types/shop/types';
 
 export function formatPrice(price: number): string {
   return price.toLocaleString('fr-FR') + ' FCFA';

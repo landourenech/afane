@@ -8,7 +8,7 @@ import { CategoryTabs } from './CategoryTabs';
 import { FilterSidebar } from './FilterSidebar';
 import { ProductGrid } from './ProductGrid';
 import { CartButton } from './CartButton';
-import { ShopItem } from '@/lib/shop/types';
+import { ShopItem } from '@/types/shop/types';
 import { filterItems, getUniqueCategories } from '@/lib/shop/utils';
 import { 
   Package,

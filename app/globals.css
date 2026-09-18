@@ -139,3 +139,38 @@ li:hover {
     color: white;
   }
 }
+
+/* ✅ Styles pour les régions du Gabon */
+.leaflet-interactive {
+  transition: all 0.3s ease;
+}
+
+/* Animation pour la région sélectionnée */
+@keyframes pulse-border {
+  0%, 100% {
+    stroke-opacity: 1;
+  }
+  50% {
+    stroke-opacity: 0.6;
+  }
+}
+
+.region-selected {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* Marqueurs personnalisés */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Popup Leaflet */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}

@@ -9,11 +9,11 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: any[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -25,129 +25,78 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Laisser passer les routes API, statiques et images
+  // Assets
   if (
-    pathname.startsWith('/api/') || 
-    pathname.startsWith('/_next/') || 
-    pathname.startsWith('/favicon.ico') ||
-    pathname.endsWith('.png') ||
-    pathname.endsWith('.jpg') ||
-    pathname.endsWith('.jpeg') ||
-    pathname.endsWith('.svg') ||
-    pathname.endsWith('.webp') ||
-    pathname.endsWith('.gif') ||
-    pathname.endsWith('.ico')
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    /\.(png|jpg|jpeg|svg|webp|gif|ico|woff|woff2|ttf|otf|json|geojson|css|js|map|txt|xml)$/i.test(pathname)
   ) {
     return supabaseResponse;
   }
 
-  // Récupérer l'utilisateur Supabase
   const { data: { user } } = await supabase.auth.getUser();
 
-  console.log('📍 Proxy:', pathname, '- User:', user?.email || 'No user');
+  // Routes PUBLIQUES (marketing)
+  const publicRoutes = ['/', '/boutique', '/carte', '/conseil', '/apropos', '/faq', '/u/'];
+  const isPublic = publicRoutes.some(r => pathname === r || pathname.startsWith(r + '/'));
 
-  // ============ ROUTES PUBLIQUES ============
-  const publicRoutes = [
-    '/login', 
-    '/onboarding', 
-    '/help', 
-    '/cookie-policy',
-    '/boutique',      // ✅ Landing page boutique
-    '/about',         // ✅ Landing page about
-    '/faq',           // ✅ Landing page FAQ
-    '/contact',       // ✅ Landing page contact
-    '/newsletter',    // ✅ Landing page newsletter
-  ];
-  
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(route + '/')
-  );
-
-  if (isPublicRoute) {
-    // Si l'utilisateur est connecté et va sur /login
-    if (user && pathname === '/login') {
+  if (isPublic) {
+    // Profil public /u/[username]
+    if (pathname.startsWith('/u/')) {
+      const username = pathname.split('/')[2];
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, onboarding_completed, role')
+        .select('username')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (!profile) {
+        return NextResponse.rewrite(new URL('/not-found', request.url), { status: 404 });
+      }
+    }
+    return supabaseResponse;
+  }
+
+  // Routes AUTH
+  if (pathname === '/login') {
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, onboarding_completed')
         .eq('email', user.email)
         .maybeSingle();
 
       if (profile) {
         const url = request.nextUrl.clone();
-        
-        if (!profile.onboarding_completed) {
-          url.pathname = '/onboarding';
-        } else {
-          url.pathname = `/${profile.username || user.id}`;
-        }
-        
+        url.pathname = !profile.onboarding_completed
+          ? '/onboarding'
+          : '/dashboard';
         return NextResponse.redirect(url);
       }
     }
-
     return supabaseResponse;
   }
 
-  // ============ ROUTE RACINE (Landing Page) ============
-  if (pathname === '/') {
-    // Le landing page est public, ne pas rediriger
-    return supabaseResponse;
-  }
+  // Routes PROTÉGÉES
+  if (!user) {
+    // Vérifier si c'est un username
+    const firstSegment = pathname.split('/').filter(Boolean)[0];
+    if (firstSegment) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', firstSegment)
+        .maybeSingle();
 
-  // ============ ROUTES PROTÉGÉES ============
-  const isProtectedRoute = 
-    !pathname.startsWith('/login') && 
-    !pathname.startsWith('/onboarding') &&
-    !pathname.startsWith('/help') &&
-    !pathname.startsWith('/cookie-policy') &&
-    !pathname.startsWith('/boutique') &&  // ✅ Landing page
-    pathname !== '/';
-
-  if (isProtectedRoute) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      url.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(url);
-    }
-
-    // Vérifier l'onboarding
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('username, onboarding_completed, role')
-      .eq('email', user.email)
-      .maybeSingle();
-
-    if (profile) {
-      if (!profile.onboarding_completed && pathname !== '/onboarding') {
-        const url = request.nextUrl.clone();
-        url.pathname = '/onboarding';
-        return NextResponse.redirect(url);
-      }
-
-      if (profile.onboarding_completed) {
-        const username = profile.username || user.id;
-        const expectedPrefix = `/${username}`;
-
-        if (pathname.startsWith('/admin') && profile.role !== 'admin') {
-          const url = request.nextUrl.clone();
-          url.pathname = `/${username}`;
-          return NextResponse.redirect(url);
-        }
-
-        const pathSegments = pathname.split('/').filter(Boolean);
-        if (pathSegments.length > 0) {
-          const firstSegment = pathSegments[0];
-          
-          const specialRoutes = ['admin', 'help', 'cookie-policy', 'boutique'];
-          if (!specialRoutes.includes(firstSegment) && firstSegment !== username) {
-            const url = request.nextUrl.clone();
-            url.pathname = `/${username}${pathname.replace(`/${firstSegment}`, '')}`;
-            return NextResponse.redirect(url);
-          }
-        }
+      if (!profile) {
+        return NextResponse.rewrite(new URL('/not-found', request.url), { status: 404 });
       }
     }
+
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(url);
   }
 
   return supabaseResponse;
@@ -155,6 +104,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|api).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|webp|gif|ico|woff|woff2|ttf|otf|json|geojson|css|js|map|txt|xml)$).*)',
   ],
 };
