@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-
+import { NotificationsDropdown } from './NotificationsDropdown';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, profile, logout } = useAuth();
