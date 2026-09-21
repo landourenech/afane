@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
 import CookieConsent from '@/components/CookieConsent';
-import '@/styles/globals.css';
+import './globals.css';
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
