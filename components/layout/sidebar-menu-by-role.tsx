@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { menuItems } from "@/components/dashboard/Sidebar-data";
+import { menuItems } from "@/components/layout/sidebar-data";
 import type { UserRole } from "@/types/user";
 
 interface SidebarMenuByRoleProps {

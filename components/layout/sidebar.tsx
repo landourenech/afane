@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { Settings, CircleQuestionMark, LogOut, User } from "lucide-react";
-import { SidebarMenuByRole } from "@/components/dashboard/SidebarMenuByRole"
+import { SidebarMenuByRole } from "@/components/layout/sidebar-menu-by-role"
 
 export function AppSidebar({ username }: { username: string }) {
   const { user, profile, logout } = useAuth();
