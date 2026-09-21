@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
-import type { Order, CreateOrderInput } from '../types';
+import type { Order } from '../types';
+import type { CreateOrderInput } from '../schemas/order.schema';
 
 export const orderService = {
   async getByUser(userId: string): Promise<Order[]> {

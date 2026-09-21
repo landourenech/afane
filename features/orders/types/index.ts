@@ -13,13 +13,3 @@ export interface Order {
   created_at: string;
   updated_at: string;
 }
-
-export interface CreateOrderInput {
-  seller_id: string;
-  publication_id?: string;
-  quantity: number;
-  unit_price: number;
-  total_amount: number;
-  notes?: string;
-  delivery_address?: string;
-}
