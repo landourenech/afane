@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowLeft, Mail, Send } from 'lucide-react';
+import { Mail, Send, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { AuthLayout } from '@/features/auth/components/AuthLayout';
 import { GoogleButton } from '@/features/auth/components/GoogleButton';
 import { SignupForm } from '@/features/auth/components/SignupForm';
 import { useAuthMutations } from '@/features/auth/hooks/use-auth-mutations';
@@ -39,69 +38,71 @@ export default function SignupPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E86C00]"></div>
+        <div className="spinner spinner-lg" />
       </div>
     );
   }
 
-  // Écran de vérification d'email
+  // Écran de vérification
   if (needsVerification && user && !user.emailVerified) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
-        <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-                <Mail className="h-8 w-8 text-yellow-600" />
-              </div>
+      <AuthLayout
+        title="Vérifiez votre email"
+        subtitle="Confirmez votre adresse pour continuer"
+        showBackToHome={false}
+      >
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 bg-[#E86C00]/10 rounded-full flex items-center justify-center">
+              <Mail className="h-8 w-8 text-[#E86C00]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Vérifiez votre email</h2>
-            <p className="text-gray-600 mb-2">Un email de vérification a été envoyé à :</p>
-            <p className="font-medium text-gray-900 mb-4">{user.email}</p>
-            <p className="text-sm text-gray-500 mb-6">
-              Cliquez sur le lien dans l'email pour activer votre compte.
-            </p>
-            <Button onClick={() => window.location.reload()} className="w-full bg-[#E86C00] hover:bg-[#E86C00]/90">
-              <Send className="h-4 w-4 mr-2" />
-              J'ai vérifié mon email
-            </Button>
           </div>
+
+          <div>
+            <p className="text-gray-600 text-sm mb-2">
+              Un email de vérification a été envoyé à :
+            </p>
+            <p className="font-semibold text-gray-900">{user.email}</p>
+          </div>
+
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-left">
+            <div className="flex items-start gap-2">
+              <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-700">
+                Cliquez sur le lien dans l'email pour activer votre compte, puis revenez ici.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => window.location.reload()}
+            className="w-full h-12 bg-[#E86C00] hover:bg-[#E86C00]/90 text-white rounded-xl font-semibold"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            J'ai vérifié mon email
+          </Button>
         </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0C4428] via-[#0C4428] to-[#E86C00] py-12 px-4">
-      <div className="max-w-md w-full space-y-6">
-        <div className="text-center">
-          <Link href="/" className="inline-block">
-            <Image src="/logo.png" alt="AFANE" width={120} height={40} priority className="mx-auto brightness-0 invert" />
-          </Link>
-          <h2 className="mt-4 text-2xl font-bold text-white">Créer un compte AFANE</h2>
-          <p className="mt-1 text-white/70 text-sm">Rejoignez la plateforme agricole</p>
-        </div>
+    <AuthLayout
+      title="Créer un compte AFANE"
+      subtitle="Rejoignez la plateforme agricole"
+    >
+      <GoogleButton onClick={loginWithGoogle} loading={loading} />
 
-        <div className="bg-white rounded-2xl shadow-2xl p-6">
-          <GoogleButton onClick={loginWithGoogle} loading={loading} />
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white text-gray-400">ou</span>
-            </div>
-          </div>
-          <SignupForm onSubmit={handleSignup} loading={loading} error={error} />
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
         </div>
-
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-1 text-white/60 hover:text-white text-sm">
-            <ArrowLeft className="h-4 w-4" />
-            Retour à l'accueil
-          </Link>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-3 bg-white text-gray-400 font-medium">ou</span>
         </div>
       </div>
-    </div>
+
+      <SignupForm onSubmit={handleSignup} loading={loading} error={error} />
+    </AuthLayout>
   );
 }

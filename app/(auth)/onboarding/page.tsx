@@ -19,13 +19,13 @@ export default function OnboardingPage() {
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E86C00]"></div>
+        <div className="spinner spinner-lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
       <OnboardingWizard />
     </div>
   );
