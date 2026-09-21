@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import CategorySelector from '@/components/dashboard/publication/CategorySelector';
+import CategorySelector from '@/components/shared/category-selector';
 import Link from 'next/link';
 import { 
   Camera,

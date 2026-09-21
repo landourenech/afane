@@ -1,7 +1,7 @@
-import About from "@/components/landingpage/about";
-import FAQSection from "@/components/landingpage/faq";
-import Hero from "@/components/landingpage/hero";
-import Newsletter from "@/components/landingpage/newsletter";
+import About from "@/components/marketing/about";
+import FAQSection from "@/components/marketing/faq";
+import Hero from "@/components/marketing/hero";
+import Newsletter from "@/components/marketing/newsletter";
 import Image from "next/image";
 
 export default function Home() {
