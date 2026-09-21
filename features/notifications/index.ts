@@ -1,4 +1,12 @@
+// Types
 export * from './types';
-export * from './schemas/notification.schema';
+
+// Schemas
+export { createNotificationSchema } from './schemas/notification.schema';
+export type { CreateNotificationInput } from './schemas/notification.schema';
+
+// Services
 export * from './services/notification.service';
+
+// Hooks
 export * from './hooks/use-notifications';
