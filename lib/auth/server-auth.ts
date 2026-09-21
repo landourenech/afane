@@ -1,19 +1,10 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import type { User } from '@/types/user';
+import type { UserProfile } from '@/types/user';
 
-/**
- * Vérifie que l'utilisateur est connecté et a complété son onboarding.
- * Redirige vers /login ou /onboarding si nécessaire.
- */
-export async function requireAuth(): Promise<{
-  user: any;
-  profile: User;
-}> {
+export async function requireAuth(): Promise<{ user: any; profile: UserProfile }> {
   const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect('/login');
 
@@ -26,38 +17,18 @@ export async function requireAuth(): Promise<{
   if (!profile) redirect('/onboarding');
   if (!profile.onboarding_completed) redirect('/onboarding');
 
-  return { user, profile: profile as User };
+  return { user, profile: profile as UserProfile };
 }
 
-/**
- * Vérifie que l'utilisateur accède à son propre espace.
- */
-export async function requireOwnership(username: string): Promise<{
-  user: any;
-  profile: User;
-}> {
+export async function requireOwnership(username: string): Promise<{ user: any; profile: UserProfile }> {
   const { user, profile } = await requireAuth();
   const currentUsername = profile.username || user.id;
-
-  if (currentUsername !== username) {
-    redirect(`/${currentUsername}`);
-  }
-
+  if (currentUsername !== username) redirect(`/${currentUsername}`);
   return { user, profile };
 }
 
-/**
- * Vérifie que l'utilisateur est administrateur.
- */
-export async function requireAdmin(): Promise<{
-  user: any;
-  profile: User;
-}> {
+export async function requireAdmin(): Promise<{ user: any; profile: UserProfile }> {
   const { user, profile } = await requireAuth();
-
-  if (profile.role !== 'admin') {
-    redirect(`/${profile.username || user.id}`);
-  }
-
+  if (profile.role !== 'admin') redirect(`/${profile.username || user.id}`);
   return { user, profile };
 }
