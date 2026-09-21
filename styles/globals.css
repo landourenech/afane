@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════════════════════
+   AFANE 2.0 — Point d'entrée des styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* Tailwind */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Design System AFANE */
+@import "./tokens.css";
+@import "./typography.css";
+@import "./animations.css";
+@import "./components.css";
+
+/* Dark mode */
+@custom-variant dark (&:is(.dark *));
+
+/* ══════════════════════════════════════════════════════════
+   THÈME TAILWIND
+   ══════════════════════════════════════════════════════════ */
+
+@theme inline {
+  /* Couleurs principales */
+  --color-background: var(--afane-gray-50);
+  --color-foreground: var(--afane-gray-900);
+  
+  --color-primary: var(--afane-orange-500);
+  --color-primary-foreground: #ffffff;
+  
+  --color-secondary: var(--afane-green-700);
+  --color-secondary-foreground: #ffffff;
+  
+  --color-muted: var(--afane-gray-100);
+  --color-muted-foreground: var(--afane-gray-500);
+  
+  --color-accent: var(--afane-yellow-500);
+  --color-accent-foreground: var(--afane-gray-900);
+  
+  --color-destructive: var(--afane-danger);
+  --color-destructive-foreground: #ffffff;
+  
+  --color-border: var(--afane-gray-200);
+  --color-input: var(--afane-gray-200);
+  --color-ring: var(--afane-orange-500);
+  
+  /* Sidebar */
+  --color-sidebar: var(--afane-green-700);
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-primary: var(--afane-orange-500);
+  --color-sidebar-accent: var(--afane-orange-500);
+  --color-sidebar-border: var(--afane-green-800);
+  
+  /* Fonts */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  
+  /* Radius */
+  --radius: var(--radius-lg);
+}
+
+/* ══════════════════════════════════════════════════════════
+   BASE
+   ══════════════════════════════════════════════════════════ */
+
+* {
+  border-color: var(--color-border);
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SCROLLBAR
+   ══════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--afane-gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--afane-gray-300);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--afane-gray-400);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SÉLECTION
+   ══════════════════════════════════════════════════════════ */
+
+::selection {
+  background-color: var(--afane-orange-200);
+  color: var(--afane-orange-900);
+}
+
+/* ══════════════════════════════════════════════════════════
+   FOCUS VISIBLE
+   ══════════════════════════════════════════════════════════ */
+
+:focus-visible {
+  outline: 2px solid var(--afane-orange-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-base);
+}
