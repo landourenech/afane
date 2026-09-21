@@ -17,38 +17,26 @@ export default function LoginPage() {
   useEffect(() => {
     if (!authLoading && user && !isRedirecting) {
       setIsRedirecting(true);
-      if (!profile?.onboarding_completed) {
-        router.push('/onboarding');
-      } else {
-        router.push(`/${profile.username || profile.id}`);
-      }
+      router.push(
+        !profile?.onboarding_completed
+          ? '/onboarding'
+          : `/${profile.username || profile.id}`
+      );
     }
   }, [user, profile, authLoading, router, isRedirecting]);
 
   if (authLoading || isRedirecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="spinner spinner-lg" />
+      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
+        <span className="spinner spinner-dark" style={{ width: 32, height: 32 }} />
       </div>
     );
   }
 
   return (
-    <AuthLayout
-      title="Connexion à AFANE"
-      subtitle="Accédez à votre espace agricole"
-    >
+    <AuthLayout title="Connexion" subtitle="Accédez à votre espace">
       <GoogleButton onClick={loginWithGoogle} loading={loading} />
-
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-3 bg-white text-gray-400 font-medium">ou</span>
-        </div>
-      </div>
-
+      <div className="divider">ou</div>
       <LoginForm
         onSubmit={(email, password) => login({ email, password })}
         loading={loading}

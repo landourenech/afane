@@ -1,0 +1,195 @@
+/* ═══════════════════════════════════════════════════════════
+   AFANE 2.0 — Base
+   Reset + Typographie de base
+   ═══════════════════════════════════════════════════════════ */
+
+* {
+  box-sizing: border-box;
+  border-color: var(--border-primary);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TYPOGRAPHIE
+   ══════════════════════════════════════════════════════════ */
+
+h1, .h1 {
+  font-size: 31px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+h2, .h2 {
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+h3, .h3 {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+h4, .h4 {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+h5, .h5 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+small {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--afane-orange);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+strong, b {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875em;
+  padding: 2px 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  color: var(--afane-orange);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SCROLLBAR
+   ══════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* ══════════════════════════════════════════════════════════
+   SÉLECTION
+   ══════════════════════════════════════════════════════════ */
+
+::selection {
+  background: var(--afane-orange);
+  color: white;
+}
+
+/* ══════════════════════════════════════════════════════════
+   FOCUS
+   ══════════════════════════════════════════════════════════ */
+
+:focus-visible {
+  outline: 2px solid var(--afane-orange);
+  outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   UTILITAIRES DE TEXTE
+   ══════════════════════════════════════════════════════════ */
+
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary  { color: var(--text-tertiary); }
+.text-inverse   { color: var(--text-inverse); }
+.text-primary   { color: var(--text-primary); }
+.text-accent    { color: var(--afane-orange); }
+.text-brand     { color: var(--afane-green); }
+.text-success   { color: var(--success); }
+.text-warning   { color: var(--warning); }
+.text-danger    { color: var(--danger); }
+.text-info      { color: var(--info); }
+
+.text-xs   { font-size: 12px; }
+.text-sm   { font-size: 13px; }
+.text-base { font-size: 15px; }
+.text-lg   { font-size: 17px; }
+.text-xl   { font-size: 20px; }
+.text-2xl  { font-size: 23px; }
+.text-3xl  { font-size: 31px; }
+
+.font-normal   { font-weight: 400; }
+.font-medium   { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold     { font-weight: 700; }
+
+.text-left    { text-align: left; }
+.text-center  { text-align: center; }
+.text-right   { text-align: right; }
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-1, .line-clamp-2, .line-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-1 { -webkit-line-clamp: 1; }
+.line-clamp-2 { -webkit-line-clamp: 2; }
+.line-clamp-3 { -webkit-line-clamp: 3; }
