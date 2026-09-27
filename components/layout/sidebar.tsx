@@ -29,8 +29,8 @@ export function AppSidebar({ username }: { username: string }) {
 
   return ( 
     <Sidebar collapsible="icon" className="bg-[var(--color-background)] text-[var(--color-foreground)] " >
-      <SidebarHeader className="bg-[var(--color-primary)] p-0">
-        <div className="flex h-16 items-center justify-center">
+      <SidebarHeader className="bg-white p-0">
+        <div className="flex h-16 items-center justify-center ">
           <Image
             src="/logo.png"
             width={80}

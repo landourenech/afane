@@ -1,17 +1,96 @@
 'use client';
 
-import { MessageCircle } from 'lucide-react';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { ConversationList } from '@/features/messages/components/ConversationList';
+import { ChatWindow } from '@/features/messages/components/ChatWindow';
+import { NewConversationModal } from '@/features/messages/components/NewConversationModal';
+import { useConversations } from '@/features/messages/hooks/use-conversations';
+import { useMessages } from '@/features/messages/hooks/use-messages';
+import { usePresenceHeartbeat } from '@/features/messages/hooks/use-presence';
+import type { Conversation } from '@/features/messages/types';
 
 export default function MessagesPage() {
+  const params = useParams();
+  const username = params?.username as string;
+  const { profile } = useAuth();
+
+  const [selectedConversation, setSelectedConversation] =
+    useState<Conversation | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // ✅ Heartbeat : marque l'utilisateur comme actif
+  usePresenceHeartbeat(profile?.id);
+
+  const { conversations, loading: loadingConversations, refresh } =
+    useConversations(profile?.id);
+
+  const { messages, loading: loadingMessages, send } = useMessages(
+    selectedConversation?.id || null,
+    profile?.id
+  );
+
+  const handleSelect = (conv: Conversation) => {
+    setSelectedConversation(conv);
+  };
+
+  const handleBack = () => {
+    setSelectedConversation(null);
+  };
+
+  const handleNewConversation = () => setModalOpen(true);
+
+  const handleConversationCreated = async (conversationId: string) => {
+    await refresh();
+    setTimeout(() => {
+      const found = conversations.find((c) => c.id === conversationId);
+      if (found) setSelectedConversation(found);
+    }, 300);
+  };
+
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">Messages</h1>
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="p-4 bg-gray-100 rounded-full mb-4">
-          <MessageCircle className="h-10 w-10 text-gray-400" />
+    <>
+      <div className="h-[calc(100vh-3.5rem-4rem)] md:h-[calc(100vh-69.5px)] flex overflow-hidden">
+        <div
+          className={`w-full md:w-80 lg:w-96 flex-shrink-0 ${
+            selectedConversation ? 'hidden md:block' : 'block'
+          }`}
+        >
+          <ConversationList
+            conversations={conversations}
+            loading={loadingConversations}
+            selectedId={selectedConversation?.id || null}
+            onSelect={handleSelect}
+            onNewConversation={handleNewConversation}
+            currentUserId={profile?.id || ''}
+          />
         </div>
-        <p className="text-gray-500">Aucun message pour le moment</p>
+
+        <div
+          className={`flex-1 min-w-0 ${
+            selectedConversation ? 'block' : 'hidden md:block'
+          }`}
+        >
+          <ChatWindow
+            conversation={selectedConversation}
+            messages={messages}
+            loading={loadingMessages}
+            currentUserId={profile?.id || ''}
+            onSend={send}
+            onBack={handleBack}
+          />
+        </div>
       </div>
-    </div>
+
+      {profile?.id && (
+        <NewConversationModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          currentUserId={profile.id}
+          onConversationCreated={handleConversationCreated}
+        />
+      )}
+    </>
   );
 }
