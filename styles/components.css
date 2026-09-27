@@ -346,3 +346,84 @@
 [data-sidebar="group-label"] {
   color: rgba(255, 255, 255, 0.6) !important;
 }
+
+/* ══════════════════════════════════════════════════════════
+   RANGE SLIDER — Style AFANE
+   ══════════════════════════════════════════════════════════ */
+
+input[type='range'].slider-thumb::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--afane-orange);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+input[type='range'].slider-thumb::-webkit-slider-thumb:hover {
+  background: var(--afane-green);
+}
+
+input[type='range'].slider-thumb::-moz-range-thumb {
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--afane-orange);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* Masquer le track par défaut (on utilise notre propre track) */
+input[type='range'].slider-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+}
+input[type='range'].slider-thumb::-moz-range-track {
+  background: transparent;
+}
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ══════════════════════════════════════════════════════════
+   SCROLLBAR THIN — Style AFANE
+   ══════════════════════════════════════════════════════════ */
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  transition: background 200ms;
+}
+
+.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--afane-orange);
+}
+
+/* Firefox */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-secondary) transparent;
+}
+
+.scrollbar-thin:hover {
+  scrollbar-color: var(--afane-orange) transparent;
+}

@@ -73,7 +73,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Contenu principal — padding-bottom pour la bottom nav mobile */}
-        <main className="flex-1 overflow-y-auto min-h-0 bg-gray-50 mobile-content-padding md:!pb-0">
+        <main className="flex-1 min-h-0 bg-gray-50 mobile-content-padding md:!pb-0">
           {children}
         </main>
 
