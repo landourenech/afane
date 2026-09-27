@@ -45,54 +45,54 @@ export default function SettingsLayout({
     router.push('/login');
   };
 
-  const settingsItems = [
-    {
-      id: 'profile',
-      title: 'Modifier le profil',
-      description: 'Nom, téléphone, localisation',
-      icon: User,
-      href: `/${username}/settings/profile`,
-      color: 'bg-blue-100 text-blue-600',
-    },
-    {
-      id: 'notifications',
-      title: 'Notifications',
-      description: 'Email, push, SMS',
-      icon: Bell,
-      href: `/${username}/settings/notifications`,
-      color: 'bg-green-100 text-green-600',
-    },
-    {
-      id: 'security',
-      title: 'Sécurité',
-      description: 'Statut du compte',
-      icon: Shield,
-      href: `/${username}/settings/security`,
-      color: 'bg-purple-100 text-purple-600',
-    },
-    {
-      id: 'danger',
-      title: 'Zone dangereuse',
-      description: 'Supprimer le compte',
-      icon: Trash2,
-      href: `/${username}/settings/danger`,
-      color: 'bg-red-100 text-red-600',
-    },
-  ];
+  // const settingsItems = [
+  //   {
+  //     id: 'profile',
+  //     title: 'Modifier le profil',
+  //     description: 'Nom, téléphone, localisation',
+  //     icon: User,
+  //     href: `/${username}/settings/profile`,
+  //     color: 'bg-blue-100 text-blue-600',
+  //   },
+  //   {
+  //     id: 'notifications',
+  //     title: 'Notifications',
+  //     description: 'Email, push, SMS',
+  //     icon: Bell,
+  //     href: `/${username}/settings/notifications`,
+  //     color: 'bg-green-100 text-green-600',
+  //   },
+  //   {
+  //     id: 'security',
+  //     title: 'Sécurité',
+  //     description: 'Statut du compte',
+  //     icon: Shield,
+  //     href: `/${username}/settings/security`,
+  //     color: 'bg-purple-100 text-purple-600',
+  //   },
+  //   {
+  //     id: 'danger',
+  //     title: 'Zone dangereuse',
+  //     description: 'Supprimer le compte',
+  //     icon: Trash2,
+  //     href: `/${username}/settings/danger`,
+  //     color: 'bg-red-100 text-red-600',
+  //   },
+  // ];
 
   // Déterminer la page active
-  const activePage = settingsItems.find(item => 
-    pathname === item.href || pathname.startsWith(item.href + '/')
-  )?.id || '';
+  // const activePage = settingsItems.find(item => 
+  //   pathname === item.href || pathname.startsWith(item.href + '/')
+  // )?.id || '';
 
   return (
     <div className="min-h-full bg-gray-50">
       <div className="flex">
         {/* SIDEBAR DESKTOP */}
-        <div className="hidden md:block w-64 bg-white border-r border-gray-200 min-h-screen sticky top-0">
+        <div className="hidden md:block  bg-white border-r border-gray-200 min-h-screen sticky top-0">
          
           
-          <nav className="p-2">
+          {/* <nav className="p-2">
             {settingsItems.map((item) => (
               <Link
                 key={item.id}
@@ -112,7 +112,7 @@ export default function SettingsLayout({
             ))}
 
          
-          </nav>
+          </nav> */}
         </div>
 
         {/* CONTENU */}

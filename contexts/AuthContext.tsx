@@ -14,6 +14,16 @@ import {
   sendEmailVerification,
   User as FirebaseUser 
 } from 'firebase/auth';
+import {
+  setCookie,
+  getCookie,
+  deleteCookie,
+  clearAllAuthCookies,
+  hasFunctionalConsent,
+  ESSENTIAL_COOKIES,
+  FUNCTIONAL_COOKIES,
+  COOKIE_DURATIONS,
+} from '@/lib/cookies';
 import { auth } from '@/lib/firebase';
 import { createClient } from '@/lib/supabase/client';
 import { UserProfile } from '@/types/user';
@@ -48,56 +58,6 @@ const AuthContext = createContext<AuthContextType>({
   completeOnboarding: async () => {},
   refreshProfile: async () => {},
 });
-
-// ============ HELPERS COOKIES ============
-const COOKIE_NAMES = {
-  SYNC_UID: 'kc_sync_uid',
-  SYNC_TIME: 'kc_sync_time',
-  PROFILE_ID: 'kc_profile_id',
-  USER_ROLE: 'kc_user_role',
-  ONBOARDING_DONE: 'kc_onboarding_done',
-  USERNAME: 'kc_username',
-};
-
-const setCookie = (name: string, value: string, days: number = 7) => {
-  if (typeof document === 'undefined') return;
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-};
-
-const getCookie = (name: string): string | null => {
-  if (typeof document === 'undefined') return null;
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [cookieName, cookieValue] = cookie.trim().split('=');
-    if (cookieName === name) {
-      return decodeURIComponent(cookieValue);
-    }
-  }
-  return null;
-};
-
-const deleteCookie = (name: string) => {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-};
-
-const clearAllCookies = () => {
-  Object.values(COOKIE_NAMES).forEach(deleteCookie);
-};
-
-const hasCookieConsent = (): boolean => {
-  if (typeof window === 'undefined') return true;
-  const consent = localStorage.getItem('cookie_consent');
-  if (!consent) return false;
-  
-  try {
-    const prefs = JSON.parse(consent);
-    return prefs.necessary === true;
-  } catch {
-    return false;
-  }
-};
 
 // ============ PROVIDER ============
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -155,14 +115,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (!hasCookieConsent()) {
+    if (!hasFunctionalConsent()) {
       console.log('⚠️ Consentement cookies non donné');
       await syncWithoutCookies(firebaseUser);
       return;
     }
 
-    const cachedUid = getCookie(COOKIE_NAMES.SYNC_UID);
-    const cachedTime = getCookie(COOKIE_NAMES.SYNC_TIME);
+    const cachedUid = getCookie(ESSENTIAL_COOKIES.SYNC_UID);
+    const cachedTime = getCookie(ESSENTIAL_COOKIES.SYNC_TIME);
     
     if (cachedUid === firebaseUser.uid && cachedTime) {
       const lastSync = parseInt(cachedTime);
@@ -211,15 +171,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('✅ Profil synchronisé:', data.profile.id);
           setProfile(data.profile);
 
-          setCookie(COOKIE_NAMES.SYNC_UID, firebaseUser.uid);
-          setCookie(COOKIE_NAMES.SYNC_TIME, Date.now().toString());
-          setCookie(COOKIE_NAMES.PROFILE_ID, data.profile.id);
-          setCookie(COOKIE_NAMES.USER_ROLE, data.profile.role || 'user');
-          setCookie(COOKIE_NAMES.ONBOARDING_DONE, (data.profile.onboarding_completed || false).toString());
+          setCookie(ESSENTIAL_COOKIES.SYNC_UID, firebaseUser.uid);
+          setCookie(ESSENTIAL_COOKIES.SYNC_TIME, Date.now().toString());
+          setCookie(FUNCTIONAL_COOKIES.PROFILE_ID, data.profile.id);
+          setCookie(FUNCTIONAL_COOKIES.USER_ROLE, data.profile.role || 'user');
+          setCookie(FUNCTIONAL_COOKIES.ONBOARDING_DONE, (data.profile.onboarding_completed || false).toString());
           
           // Sauvegarder le username
           if (data.profile.username) {
-            setCookie(COOKIE_NAMES.USERNAME, data.profile.username);
+            setCookie(FUNCTIONAL_COOKIES.USERNAME, data.profile.username);
           }
         }
       } else {
@@ -253,7 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await syncUser(firebaseUser);
       } else {
         setProfile(null);
-        clearAllCookies();
+        clearAllAuthCookies();
       }
       
       setLoading(false);
@@ -335,7 +295,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
       await signOut(auth);
       
-      clearAllCookies();
+      clearAllAuthCookies();
       
       setProfile(null);
       setUser(null);
@@ -368,12 +328,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const updatedProfile = await response.json();
       setProfile(updatedProfile);
       
-      if (hasCookieConsent()) {
-        setCookie(COOKIE_NAMES.ONBOARDING_DONE, 'true');
-        setCookie(COOKIE_NAMES.USER_ROLE, updatedProfile.role);
+      if (hasFunctionalConsent()) {
+        setCookie(FUNCTIONAL_COOKIES.ONBOARDING_DONE, 'true');
+        setCookie(FUNCTIONAL_COOKIES.USER_ROLE, updatedProfile.role);
         
         if (updatedProfile.username) {
-          setCookie(COOKIE_NAMES.USERNAME, updatedProfile.username);
+          setCookie(FUNCTIONAL_COOKIES.USERNAME, updatedProfile.username);
         }
       }
       

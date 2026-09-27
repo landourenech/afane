@@ -24,7 +24,7 @@ export interface MobileTab {
 
 const TAB_HOME: MobileTab = { title: "Accueil", url: "", icon: Home };
 const TAB_MESSAGES: MobileTab = { title: "Messages", url: "/messages", icon: MessageCircle };
-const TAB_PROFILE: MobileTab = { title: "Profil", url: "/profile", icon: User };
+const TAB_PROFILE: MobileTab = { title: "Paramètres", url: "/settings", icon: Settings };
 
 // Partial : tous les rôles ne sont pas forcément listés
 const TABS_BY_ROLE: Partial<Record<UserRole, [MobileTab, MobileTab]>> = {

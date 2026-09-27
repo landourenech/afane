@@ -1,125 +1,141 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { 
+import { useParams, useRouter } from 'next/navigation';
+import {
   User,
+  Lock,
   Bell,
+  Cookie,
+  Palette,
+  Globe,
+  HelpCircle,
+  FileText,
+  LogOut,
   Shield,
-  Trash2,
-  ChevronRight,
+  MessageCircle,
+  Info,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  SettingsItem,
+  SettingsSection,
+  SettingsProfileCard,
+} from '@/features/settings';
 
 export default function SettingsPage() {
-  const { user, profile } = useAuth();
   const params = useParams();
+  const router = useRouter();
   const username = params?.username as string;
+  const { logout } = useAuth();
 
-  const settingsItems = [
-    {
-      title: 'Modifier le profil',
-      description: 'Nom, téléphone, localisation, bio',
-      icon: User,
-      href: `/${username}/settings/profile`,
-      color: 'bg-blue-100 text-blue-600',
-    },
-    {
-      title: 'Notifications',
-      description: 'Email, push, SMS',
-      icon: Bell,
-      href: `/${username}/settings/notifications`,
-      color: 'bg-green-100 text-green-600',
-    },
-    {
-      title: 'Sécurité',
-      description: 'Mot de passe, vérification',
-      icon: Shield,
-      href: `/${username}/settings/security`,
-      color: 'bg-purple-100 text-purple-600',
-    },
-    {
-      title: 'Zone dangereuse',
-      description: 'Supprimer le compte',
-      icon: Trash2,
-      href: `/${username}/settings/danger`,
-      color: 'bg-red-100 text-red-600',
-    },
-  ];
+  const handleLogout = async () => {
+    if (!confirm('Voulez-vous vraiment vous déconnecter ?')) return;
+    await logout();
+    router.push('/login');
+  };
 
   return (
-    <div>
-      {/* Contenu desktop - grille */}
-      <div className="hidden md:block p-6">
-   
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-4xl">
-          {settingsItems.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className="flex items-center justify-between bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all hover:-translate-y-1"
-            >
-              <div className="flex items-center">
-                <div className={`p-3 rounded-lg ${item.color}`}>
-                  <item.icon className="h-6 w-6" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{item.description}</p>
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 text-gray-300" />
-            </Link>
-          ))}
-        </div>
+    <div className="max-w-2xl mx-auto px-4 py-4 pb-24">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+          Paramètres
+        </h1>
       </div>
 
-      {/* Contenu mobile - liste */}
-      <div className="md:hidden">
-        {/* Carte profil */}
-        <div className="bg-white border-b border-gray-200 p-4">
-          <div className="flex items-center">
-            {user?.photoURL ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.photoURL}
-                alt={profile?.display_name || 'Avatar'}
-                className="w-14 h-14 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-14 h-14 bg-gray-300 rounded-full flex items-center justify-center">
-                <User className="w-7 h-7 text-gray-500" />
-              </div>
-            )}
-            <div className="ml-4">
-              <p className="font-semibold text-gray-900">{profile?.display_name}</p>
-              <p className="text-sm text-gray-500">{profile?.email}</p>
-            </div>
-          </div>
-        </div>
+      <SettingsProfileCard username={username} />
 
-        {/* Liste des items */}
-        <div className="divide-y divide-gray-200">
-          {settingsItems.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className="flex items-center justify-between bg-white p-4 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center">
-                <div className={`p-2 rounded-lg ${item.color}`}>
-                  <item.icon className="h-5 w-5" />
-                </div>
-                <div className="ml-3">
-                  <p className="font-medium text-gray-900">{item.title}</p>
-                  <p className="text-sm text-gray-500">{item.description}</p>
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 text-gray-300" />
-            </Link>
-          ))}
-        </div>
-      </div>
+      <SettingsSection title="Compte">
+        <SettingsItem
+          icon={User}
+          label="Profil"
+          description="Nom, photo, bio"
+          href={`/${username}/settings/profile`}
+        />
+        <SettingsItem
+          icon={Lock}
+          label="Sécurité"
+          description="Mot de passe, 2FA, sessions"
+          href={`/${username}/settings/security`}
+        />
+        <SettingsItem
+          icon={Bell}
+          label="Notifications"
+          description="Push, email, sons"
+          href={`/${username}/settings/notifications`}
+        />
+        <SettingsItem
+          icon={Shield}
+          label="Confidentialité"
+          description="Qui peut voir mon profil"
+          href={`/${username}/settings/privacy`}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="Préférences">
+        <SettingsItem
+          icon={Palette}
+          label="Apparence"
+          description="Thème clair / sombre"
+          href={`/${username}/settings/appearance`}
+        />
+        <SettingsItem
+          icon={Globe}
+          label="Langue et région"
+          description="Français · Gabon"
+          href={`/${username}/settings/language`}
+        />
+        <SettingsItem
+          icon={MessageCircle}
+          label="Discussions"
+          description="Fond d'écran, taille de police"
+          href={`/${username}/settings/chats`}
+        />
+        <SettingsItem
+          icon={Cookie}
+          label="Cookies"
+          description="Préférences de consentement"
+          href={`/${username}/settings/cookies`}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="Aide et informations">
+        <SettingsItem
+          icon={HelpCircle}
+          label="Centre d'aide"
+          description="FAQ, guides, tutoriels"
+          href="/help"
+        />
+        <SettingsItem
+          icon={FileText}
+          label="Conditions d'utilisation"
+          href="/terms"
+        />
+        <SettingsItem
+          icon={Cookie}
+          label="Politique cookies"
+          href="/cookie-policy"
+        />
+        <SettingsItem
+          icon={Info}
+          label="À propos d'AFANE"
+          description="Version 2.0.0-beta.9"
+          href="/about"
+        />
+      </SettingsSection>
+
+      <SettingsSection>
+        <SettingsItem
+          icon={LogOut}
+          label="Déconnexion"
+          variant="danger"
+          onClick={handleLogout}
+          iconBg="bg-red-100"
+        />
+      </SettingsSection>
+
+      <p className="text-center text-[11px] text-[var(--text-tertiary)] mt-6">
+        AFANE 2.0 · Made with 💚 in Gabon
+      </p>
     </div>
   );
 }
