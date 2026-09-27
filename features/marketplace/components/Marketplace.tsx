@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Package, X } from 'lucide-react';
 import { useMarketplace } from '../hooks/use-marketplace';
+import { useCart } from '@/features/checkout';
 import { SearchBar } from './SearchBar';
 import { FilterSidebar } from './FilterSidebar';
 import { ProductCard } from './ProductCard';
 import { AdsCarousel } from './AdsCarousel';
 import type { Product } from '../types';
+
 
 export function Marketplace() {
   const params = useParams();
@@ -24,13 +26,24 @@ export function Marketplace() {
     resetFilters,
     activeFiltersCount,
   } = useMarketplace();
+  const { addItem } = useCart();
 
   const handleAddToCart = (product: Product) => {
-    console.log('Ajouter au panier:', product.title);
+    addItem({
+      productId: product.id,
+      title: product.title,
+      image_url: product.image_url,
+      price_per_kg: product.price_per_kg,
+      unit: product.unit,
+      quantity: 1,
+      sellerId: product.seller.id,
+      sellerName: product.seller.name,
+      maxQuantity: product.quantity_available,
+    });
   };
 
   const handleToggleFavorite = (product: Product) => {
-    console.log('Favori:', product.title);
+    console.log('Favori:', product.title,);
   };
 
   return (

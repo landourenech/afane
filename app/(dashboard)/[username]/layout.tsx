@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { CartProvider } from '@/features/checkout';
 
 export default function DashboardLayout({
   children,
@@ -38,48 +39,45 @@ export default function DashboardLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      {/* Sidebar — Desktop uniquement (shadcn la cache automatiquement sur mobile) */}
-      <AppSidebar username={username} />
+    <CartProvider>
+      <SidebarProvider defaultOpen={false}>
+        <AppSidebar username={username} />
 
-      <div className="flex-1 flex flex-col h-screen min-w-0">
-        {/* Header Mobile */}
-        <MobileHeader username={username} />
+        <div className="flex-1 flex flex-col h-screen min-w-0">
+          <MobileHeader username={username} />
 
-        {/* Header Desktop */} 
-        <header className="hidden md:flex h-[69.5px] shrink-0 items-center justify-between border-b-[7px] border-[var(--color-secondary)] bg-white px-4">
-          <SidebarTrigger className="text-[var(--color-secondary)]" />
+          <header className="hidden md:flex h-[69.5px] shrink-0 items-center justify-between border-b-[7px] border-[var(--color-secondary)] bg-white px-4">
+            <SidebarTrigger className="text-[var(--color-secondary)]" />
 
-          <div className="flex items-center gap-3">
-            <NotificationsDropdown />
+            <div className="flex items-center gap-3">
+              <NotificationsDropdown />
 
-            {user.photoURL ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.photoURL}
-                alt={user.displayName || 'User'}
-                className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[var(--color-secondary)] transition-all"
-                onClick={() => router.push(`/${username}/profile`)}
-              />
-            ) : (
-              <div
-                className="w-10 h-10 bg-[var(--color-secondary)] rounded-full flex items-center justify-center text-white cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => router.push(`/${username}/profile`)}
-              >
-                {(profile?.display_name || 'U').charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-        </header>
+              {user.photoURL ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="w-10 h-10 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-[var(--color-secondary)] transition-all"
+                  onClick={() => router.push(`/${username}/profile`)}
+                />
+              ) : (
+                <div
+                  className="w-10 h-10 bg-[var(--color-secondary)] rounded-full flex items-center justify-center text-white cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => router.push(`/${username}/profile`)}
+                >
+                  {(profile?.display_name || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          </header>
 
-        {/* Contenu principal — padding-bottom pour la bottom nav mobile */}
-        <main className="flex-1 min-h-0 bg-gray-50 mobile-content-padding md:!pb-0">
-          {children}
-        </main>
+          <main className="flex-1 min-h-0 bg-gray-50 mobile-content-padding md:!pb-0">
+            {children}
+          </main>
 
-        {/* Bottom Nav — Mobile uniquement */}
-        <MobileNav username={username} />
-      </div>
-    </SidebarProvider>
+          <MobileNav username={username} />
+        </div>
+      </SidebarProvider>
+    </CartProvider>
   );
 }

@@ -12,6 +12,7 @@ import {
   BookOpen,
   Map,
   Bell,
+  ShoppingBag,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
@@ -29,58 +30,54 @@ export interface MenuItem {
 // ══════════════════════════════════════════════════════════
 
 export const mainMenuItems: MenuItem[] = [
-  // Universel
   { title: "Accueil", url: "", icon: Home },
   { title: "Explorer", url: "/explore", icon: Compass },
+  { title: "Panier", url: "/checkout", icon: ShoppingBag },
   { title: "Messages", url: "/messages", icon: MessageCircle },
   { title: "Notifications", url: "/notifications", icon: Bell },
 
-  // Producteur / Coopérative / Fournisseur
-  { 
-    title: "Mes Produits", 
-    url: "/products", 
+  {
+    title: "Mes Produits",
+    url: "/products",
     icon: Package,
     roles: ["producer", "cooperative", "supplier"],
   },
-  { 
-    title: "Commandes", 
-    url: "/orders", 
+  {
+    title: "Commandes",
+    url: "/orders",
     icon: ShoppingCart,
     roles: ["producer", "cooperative", "supplier", "buyer"],
   },
 
-  // Conseiller
-  { 
-    title: "Conseils", 
-    url: "/advice", 
+  {
+    title: "Conseils",
+    url: "/advice",
     icon: BookOpen,
     roles: ["advisor", "producer", "cooperative"],
   },
-  { 
-    title: "Carte agricole", 
-    url: "/map", 
+  {
+    title: "Carte agricole",
+    url: "/map",
     icon: Map,
     roles: ["advisor", "producer", "cooperative", "admin"],
   },
 
-  // Acheteur
-  { 
-    title: "Favoris", 
-    url: "/favorites", 
+  {
+    title: "Favoris",
+    url: "/favorites",
     icon: Heart,
     roles: ["buyer"],
   },
 
-  // Admin
-  { 
-    title: "Utilisateurs", 
-    url: "/users", 
+  {
+    title: "Utilisateurs",
+    url: "/users",
     icon: Users,
     roles: ["admin"],
   },
-  { 
-    title: "Statistiques", 
-    url: "/statistics", 
+  {
+    title: "Statistiques",
+    url: "/statistics",
     icon: BarChart3,
     roles: ["admin"],
   },
@@ -96,7 +93,7 @@ export const footerMenuItems: MenuItem[] = [
 ];
 
 // ══════════════════════════════════════════════════════════
-// Rétrocompatibilité (pour ne rien casser)
+// Rétrocompatibilité
 // ══════════════════════════════════════════════════════════
 
 export const menuItems: MenuItem[] = [
