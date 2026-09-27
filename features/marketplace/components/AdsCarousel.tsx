@@ -64,20 +64,17 @@ const VARIANT_STYLES = {
   },
 };
 
-const ROTATION_INTERVAL = 5000; // 5 secondes
+const ROTATION_INTERVAL = 5000;
 
 export function AdsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Rotation automatique
   useEffect(() => {
     if (isPaused) return;
-
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % ADS.length);
     }, ROTATION_INTERVAL);
-
     return () => clearInterval(interval);
   }, [isPaused]);
 
@@ -94,7 +91,6 @@ export function AdsCarousel() {
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)]">
           À découvrir
         </h3>
-        {/* Indicateurs */}
         <div className="flex items-center gap-1">
           {ADS.map((_, idx) => (
             <button
@@ -111,7 +107,6 @@ export function AdsCarousel() {
         </div>
       </div>
 
-      {/* Carte pub avec transition */}
       <div className="relative overflow-hidden rounded-2xl">
         <Link
           key={ad.id}
@@ -141,7 +136,6 @@ export function AdsCarousel() {
         </Link>
       </div>
 
-      {/* Barre de progression */}
       <div className="h-0.5 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
         <div
           key={`${currentIndex}-${isPaused}`}
