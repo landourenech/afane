@@ -193,3 +193,26 @@ code {
 .line-clamp-1 { -webkit-line-clamp: 1; }
 .line-clamp-2 { -webkit-line-clamp: 2; }
 .line-clamp-3 { -webkit-line-clamp: 3; }
+
+/* ══════════════════════════════════════════════════════════
+   SAFE AREA (iPhone notch / home bar)
+   ══════════════════════════════════════════════════════════ */
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Espace sous le contenu pour ne pas être caché par la bottom nav */
+.mobile-content-padding {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .mobile-content-padding {
+    padding-bottom: 0;
+  }
+}
