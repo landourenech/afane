@@ -21,7 +21,7 @@
 @theme inline {
   --color-background: var(--afane-green);
   --color-foreground: var(--text-inverse);
-  --color-primary: var(--afane-orange);
+  --color-primary: var(--text-inverse);
   --color-primary-foreground: #ffffff;
   --color-secondary: var(--afane-green);
   --color-secondary-foreground: #ffffff;

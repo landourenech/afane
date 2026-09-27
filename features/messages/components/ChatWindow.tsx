@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowLeft, Phone, Video, Info, MessageCircle } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
+import { isUserOnline } from '../hooks/use-presence';
 import type { Conversation, Message } from '../types';
 
 interface ChatWindowProps {
@@ -25,7 +26,6 @@ export function ChatWindow({
 }: ChatWindowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll en bas quand nouveaux messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -34,14 +34,14 @@ export function ChatWindow({
 
   if (!conversation) {
     return (
-      <div className="hidden md:flex flex-col items-center justify-center h-full bg-gray-50 text-center p-6">
-        <div className="p-6 bg-white rounded-full mb-4 shadow-sm">
-          <MessageCircle className="h-12 w-12 text-[#e86c00]" />
+      <div className="hidden md:flex flex-col items-center justify-center h-full bg-[var(--bg-secondary)] text-center p-6">
+        <div className="p-6 bg-[var(--bg-primary)] rounded-full mb-4 shadow-sm">
+          <MessageCircle className="h-12 w-12 text-[var(--afane-orange)]" />
         </div>
-        <h2 className="text-lg font-bold text-gray-900 mb-1">
+        <h2 className="text-lg font-bold text-[var(--text-primary)] mb-1">
           Vos messages
         </h2>
-        <p className="text-sm text-gray-500 max-w-xs">
+        <p className="text-sm text-[var(--text-secondary)] max-w-xs">
           Sélectionnez une conversation pour commencer à discuter
         </p>
       </div>
@@ -49,65 +49,77 @@ export function ChatWindow({
   }
 
   const otherUser = conversation.other_user;
+  const online = isUserOnline(otherUser?.last_seen_at);
+
+  // Affiche le nom, sinon le @username, sinon "Utilisateur"
+  const displayName =
+    otherUser?.display_name ||
+    (otherUser?.username ? `@${otherUser.username}` : null) ||
+    'Utilisateur';
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      {/* ═════ Header ═════ */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 flex-shrink-0">
+    <div className="flex flex-col h-full bg-[var(--bg-secondary)]">
+      {/* ═════ Header — VERT AFANE + texte blanc ═════ */}
+      <div className="flex items-center gap-3 px-4 py-3 bg-[var(--afane-green)] text-[var(--text-inverse)] flex-shrink-0">
         {/* Bouton retour (mobile) */}
         {onBack && (
           <button
             onClick={onBack}
-            className="p-1 -ml-1 rounded-full hover:bg-gray-100 md:hidden"
+            className="p-1 -ml-1 rounded-full hover:bg-white/10 md:hidden transition-colors"
             aria-label="Retour"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
+            <ArrowLeft className="h-5 w-5 text-[var(--text-inverse)]" />
           </button>
         )}
 
-        {/* Avatar + Nom */}
+        {/* Avatar + Nom + Statut */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {otherUser?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={otherUser.avatar_url}
-              alt={otherUser.display_name || ''}
-              className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+              alt={displayName}
+              className="w-10 h-10 rounded-full object-cover flex-shrink-0 border-2 border-white/30"
             />
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-[#0c4428] to-[#e86c00] rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-              {(otherUser?.display_name || 'U').charAt(0).toUpperCase()}
+            <div className="w-10 h-10 bg-[var(--afane-orange)] rounded-full flex items-center justify-center text-[var(--text-inverse)] font-semibold flex-shrink-0">
+              {displayName.charAt(0).toUpperCase()}
             </div>
           )}
 
           <div className="min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">
-              {otherUser?.display_name || 'Utilisateur'}
+            {/* Nom (ou @username si pas de nom) */}
+            <p className="font-semibold text-sm text-[var(--text-inverse)] truncate">
+              {displayName}
             </p>
-            {otherUser?.username && (
-              <p className="text-xs text-gray-500 truncate">
-                @{otherUser.username}
-              </p>
-            )}
+            {/* Statut en ligne / hors ligne — en blanc */}
+            <p className="text-xs text-[var(--text-inverse)]/80 truncate flex items-center gap-1.5">
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${
+                  online ? 'bg-green-400' : 'bg-white/40'
+                }`}
+              />
+              {online ? 'En ligne' : 'Hors ligne'}
+            </p>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+            className="p-2 rounded-full hover:bg-white/10 text-[var(--text-inverse)] transition-colors"
             aria-label="Appel audio"
           >
             <Phone className="h-5 w-5" />
           </button>
           <button
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+            className="p-2 rounded-full hover:bg-white/10 text-[var(--text-inverse)] transition-colors"
             aria-label="Appel vidéo"
           >
             <Video className="h-5 w-5" />
           </button>
           <button
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors hidden md:inline-flex"
+            className="p-2 rounded-full hover:bg-white/10 text-[var(--text-inverse)] transition-colors hidden md:inline-flex"
             aria-label="Informations"
           >
             <Info className="h-5 w-5" />
@@ -122,11 +134,11 @@ export function ChatWindow({
       >
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-[#e86c00]" />
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--border-primary)] border-t-[var(--afane-orange)]" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-[var(--text-secondary)]">
               Aucun message. Dites bonjour 👋
             </p>
           </div>
@@ -144,7 +156,7 @@ export function ChatWindow({
                 isOwn={isOwn}
                 showAvatar={showAvatar}
                 senderPhoto={otherUser?.avatar_url}
-                senderName={otherUser?.display_name}
+                senderName={displayName}
               />
             );
           })
