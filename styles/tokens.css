@@ -100,4 +100,29 @@
   --z-sticky: 1020;
   --z-modal: 1050;
   --z-toast: 1080;
+
+
+
+   /* ══════════════════════════════════════════════════════════
+     SIDEBAR
+     ══════════════════════════════════════════════════════════ */
+
+
+   /* Fond de la sidebar */
+  --sidebar: var(--afane-green);
+
+  /* Texte des items */
+  --sidebar-foreground: var(--text-inverse);
+
+  /* Hover sur un item (survol souris) */
+  --sidebar-accent:var(--afane-orange);      /* orange translucide */
+  --sidebar-accent-foreground: #ffffff;
+
+  /* Item actif (page courante) */
+  --sidebar-primary: var(--afane-orange);
+  --sidebar-primary-foreground: #ffffff;
+
+  /* Bordures */
+  --sidebar-border: var(--afane-orange);
+  --sidebar-ring: var(--afane-orange);
 }

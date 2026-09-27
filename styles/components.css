@@ -311,3 +311,38 @@
     padding: 0 16px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════
+   SIDEBAR AFANE — Texte blanc sur les liens et boutons
+   ══════════════════════════════════════════════════════════ */
+
+/* Neutraliser la couleur par défaut des <a> dans la sidebar */
+[data-slot="sidebar"] a,
+[data-slot="sidebar"] a:visited,
+[data-slot="sidebar"] a:focus,
+[data-slot="sidebar"] a:active,
+[data-slot="sidebar"] a:hover {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+/* Boutons */
+[data-sidebar="menu-button"],
+[data-sidebar="menu-button"]:hover,
+[data-sidebar="menu-button"]:focus,
+[data-sidebar="menu-button"]:focus-visible,
+[data-sidebar="menu-button"][data-active="true"],
+[data-sidebar="menu-button"][data-open] {
+  color: #ffffff !important;
+}
+
+/* Spans et icônes internes */
+[data-sidebar="menu-button"] span,
+[data-sidebar="menu-button"] svg {
+  color: #ffffff !important;
+}
+
+/* Group labels */
+[data-sidebar="group-label"] {
+  color: rgba(255, 255, 255, 0.6) !important;
+}

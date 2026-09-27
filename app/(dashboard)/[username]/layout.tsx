@@ -46,9 +46,9 @@ export default function DashboardLayout({
         {/* Header Mobile */}
         <MobileHeader username={username} />
 
-        {/* Header Desktop */}
+        {/* Header Desktop */} 
         <header className="hidden md:flex h-[69.5px] shrink-0 items-center justify-between border-b-[7px] border-[var(--color-secondary)] bg-white px-4">
-          <SidebarTrigger />
+          <SidebarTrigger className="text-[var(--color-secondary)]" />
 
           <div className="flex items-center gap-3">
             <NotificationsDropdown />
