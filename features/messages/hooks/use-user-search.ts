@@ -9,19 +9,6 @@ export interface SearchUser {
   username: string | null;
   avatar_url: string | null;
   role: string;
-  phone: string | null;
-  email: string | null;
-}
-
-export type SearchMode = 'text' | 'email' | 'phone';
-
-export function detectSearchMode(query: string): SearchMode {
-  const trimmed = query.trim();
-  if (trimmed.includes('@')) return 'email';
-  if (/^[\d\s+\-()]+$/.test(trimmed) && trimmed.replace(/\D/g, '').length >= 3) {
-    return 'phone';
-  }
-  return 'text';
 }
 
 export function useUserSearch(
@@ -30,22 +17,22 @@ export function useUserSearch(
 ) {
   const [users, setUsers] = useState<SearchUser[]>([]);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<SearchMode>('text');
 
   useEffect(() => {
-    if (!query.trim() || !currentUserId) {
+    // ✅ Minimum 2 caractères + auth obligatoire
+    if (!query.trim() || query.trim().length < 2 || !currentUserId) {
       setUsers([]);
-      setMode('text');
       return;
     }
-
-    setMode(detectSearchMode(query));
 
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const results = await searchUsers(query, currentUserId);
         setUsers(results as SearchUser[]);
+      } catch (err) {
+        console.error('Erreur search:', err);
+        setUsers([]);
       } finally {
         setLoading(false);
       }
@@ -54,5 +41,5 @@ export function useUserSearch(
     return () => clearTimeout(timer);
   }, [query, currentUserId]);
 
-  return { users, loading, mode };
+  return { users, loading };
 }

@@ -1,31 +1,12 @@
 import { createClient } from '@/lib/supabase/client';
+import { rateLimit } from '@/lib/rate-limit';
 import type { Conversation, Message } from '../types';
 
 // ═══════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════
-
-function detectQueryType(query: string): 'email' | 'phone' | 'text' {
-  const trimmed = query.trim();
-  if (trimmed.includes('@')) return 'email';
-  if (/^[\d\s+\-()]+$/.test(trimmed) && trimmed.replace(/\D/g, '').length >= 3) {
-    return 'phone';
-  }
-  return 'text';
-}
-
-function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, '');
-}
-
-// ═══════════════════════════════════════════════════════════
-// SERVICE
+// SERVICE — MESSAGERIE (SÉCURISÉ)
 // ═══════════════════════════════════════════════════════════
 
 export const messageService = {
-  /**
-   * Récupérer toutes les conversations de l'utilisateur
-   */
   async getConversations(userId: string): Promise<Conversation[]> {
     const supabase = createClient();
 
@@ -33,8 +14,8 @@ export const messageService = {
       .from('conversations')
       .select(`
         *,
-        participant_1_profile:profiles!conversations_participant_1_fkey(id, display_name, username, avatar_url),
-        participant_2_profile:profiles!conversations_participant_2_fkey(id, display_name, username, avatar_url)
+        participant_1_profile:profiles!conversations_participant_1_fkey(id, display_name, username, avatar_url, last_seen_at),
+        participant_2_profile:profiles!conversations_participant_2_fkey(id, display_name, username, avatar_url, last_seen_at)
       `)
       .or(`participant_1.eq.${userId},participant_2.eq.${userId}`)
       .order('last_message_at', { ascending: false });
@@ -75,9 +56,6 @@ export const messageService = {
     return conversations;
   },
 
-  /**
-   * Récupérer les messages d'une conversation
-   */
   async getMessages(conversationId: string): Promise<Message[]> {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -89,9 +67,6 @@ export const messageService = {
     return data || [];
   },
 
-  /**
-   * Envoyer un message
-   */
   async sendMessage(
     conversationId: string,
     senderId: string,
@@ -111,9 +86,6 @@ export const messageService = {
     return data;
   },
 
-  /**
-   * Marquer les messages comme lus
-   */
   async markAsRead(conversationId: string, userId: string): Promise<void> {
     const supabase = createClient();
     await supabase
@@ -126,11 +98,16 @@ export const messageService = {
 };
 
 // ═══════════════════════════════════════════════════════════
-// RECHERCHE UTILISATEURS MULTI-CHAMPS
+// RECHERCHE UTILISATEURS — SÉCURISÉE
 // ═══════════════════════════════════════════════════════════
 
 /**
- * Rechercher des utilisateurs par nom, username, email ou téléphone
+ * Rechercher des utilisateurs (par nom ou @username UNIQUEMENT)
+ * - ✅ Pas d'email ni phone en retour
+ * - ✅ Admins masqués
+ * - ✅ Auth obligatoire
+ * - ✅ Rate limiting
+ * - ✅ Min 2 caractères
  */
 export async function searchUsers(
   query: string,
@@ -138,48 +115,52 @@ export async function searchUsers(
   limit: number = 20
 ) {
   const supabase = createClient();
+
   const trimmed = query.trim();
-  if (!trimmed) return [];
 
-  const queryType = detectQueryType(trimmed);
+  // ✅ Minimum 2 caractères
+  if (!trimmed || trimmed.length < 2) return [];
 
-  let queryBuilder = supabase
-    .from('profiles')
-    .select('id, display_name, username, avatar_url, role, phone, email')
-    .neq('id', currentUserId)
-    .limit(limit);
-
-  if (queryType === 'email') {
-    queryBuilder = queryBuilder.ilike('email', `%${trimmed}%`);
-  } else if (queryType === 'phone') {
-    const normalized = normalizePhone(trimmed);
-    queryBuilder = queryBuilder.or(
-      `phone.ilike.%${trimmed}%,phone.ilike.%${normalized}%`
-    );
-  } else {
-    queryBuilder = queryBuilder.or(
-      `display_name.ilike.%${trimmed}%,` +
-      `username.ilike.%${trimmed}%,` +
-      `email.ilike.%${trimmed}%`
-    );
-  }
-
-  const { data, error } = await queryBuilder;
-  if (error) {
-    console.error('Erreur recherche utilisateurs:', error);
+  // ✅ Rate limiting (30 recherches / minute / user)
+  const { allowed } = rateLimit(`search:${currentUserId}`, {
+    maxAttempts: 30,
+    windowMs: 60_000,
+  });
+  if (!allowed) {
+    console.warn('Rate limit atteint pour:', currentUserId);
     return [];
   }
+
+  // ✅ Appel RPC sécurisé (filtrage côté DB)
+  const { data, error } = await supabase.rpc('search_users_secure', {
+    search_query: trimmed,
+    exclude_user_id: currentUserId,
+    max_results: limit,
+  });
+
+  if (error) {
+    console.error('Erreur recherche:', error);
+    return [];
+  }
+
   return data || [];
 }
 
-/**
- * Récupérer ou créer une conversation avec un utilisateur
- */
+// ═══════════════════════════════════════════════════════════
+// CONVERSATION — CRÉATION
+// ═══════════════════════════════════════════════════════════
+
 export async function getOrCreateConversation(
   currentUserId: string,
   otherUserId: string
 ): Promise<string> {
   const supabase = createClient();
+
+  // ✅ Interdire de créer une conversation avec soi-même
+  if (currentUserId === otherUserId) {
+    throw new Error('Impossible de créer une conversation avec soi-même');
+  }
+
   const [p1, p2] = [currentUserId, otherUserId].sort();
 
   const { data: existing } = await supabase
