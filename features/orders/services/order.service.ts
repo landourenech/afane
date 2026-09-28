@@ -3,52 +3,65 @@ import type { Order, CreateOrderInput, OrderStatus } from '../types';
 
 export const orderService = {
   /* ══════════════════════════════════════════════════════════
-     Récupérer les commandes d'un utilisateur (Supabase direct)
+     Commandes de l'acheteur
      ══════════════════════════════════════════════════════════ */
   async getByUser(userId: string): Promise<Order[]> {
     const supabase = createClient();
+
     const { data, error } = await supabase
       .from('orders')
-      .select(`
-        *,
-        items:order_items(*)
-      `)
+      .select('*, items:order_items(*)')
       .eq('buyer_id', userId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('getByUser error:', error);
+      throw error;
+    }
     return (data || []) as Order[];
   },
 
   /* ══════════════════════════════════════════════════════════
-     Récupérer les ventes d'un vendeur
+     Ventes du vendeur
      ══════════════════════════════════════════════════════════ */
   async getSalesByUser(userId: string): Promise<Order[]> {
     const supabase = createClient();
+
+    const { data: itemRows, error: itemsError } = await supabase
+      .from('order_items')
+      .select('order_id')
+      .eq('seller_id', userId);
+
+    if (itemsError) {
+      console.error('getSalesByUser items error:', itemsError);
+      throw itemsError;
+    }
+
+    const orderIds = [...new Set((itemRows || []).map((r) => r.order_id))];
+    if (orderIds.length === 0) return [];
+
     const { data, error } = await supabase
       .from('orders')
-      .select(`
-        *,
-        items:order_items!inner(*)
-      `)
-      .eq('order_items.seller_id', userId)
+      .select('*, items:order_items(*)')
+      .in('id', orderIds)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('getSalesByUser orders error:', error);
+      throw error;
+    }
     return (data || []) as Order[];
   },
 
   /* ══════════════════════════════════════════════════════════
-     Récupérer une commande par ID
+     Détail commande
      ══════════════════════════════════════════════════════════ */
   async getById(id: string): Promise<Order | null> {
     const supabase = createClient();
+
     const { data, error } = await supabase
       .from('orders')
-      .select(`
-        *,
-        items:order_items(*)
-      `)
+      .select('*, items:order_items(*)')
       .eq('id', id)
       .maybeSingle();
 
@@ -57,55 +70,99 @@ export const orderService = {
   },
 
   /* ══════════════════════════════════════════════════════════
-     Créer une commande (via API pour la sécurité)
+     Créer une commande — via RPC SECURITY DEFINER
      ══════════════════════════════════════════════════════════ */
-  async create(input: CreateOrderInput): Promise<Order> {
-    const res = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
+  async create(input: CreateOrderInput, buyerId: string): Promise<Order> {
+    const supabase = createClient();
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Erreur création commande');
+    const orderNumber = `AF-${Date.now().toString(36).toUpperCase()}`;
+
+    const { data: orderId, error } = await supabase.rpc(
+      'create_order_with_items',
+      {
+        p_order_number: orderNumber,
+        p_buyer_id: buyerId,
+        p_subtotal: input.summary.subtotal,
+        p_delivery_cost: input.summary.deliveryCost,
+        p_service_fee: input.summary.serviceFee,
+        p_discount: input.summary.discount,
+        p_total: input.summary.total,
+        p_delivery_option: input.delivery.option,
+        p_delivery_address: input.delivery.address || null,
+        p_delivery_city: input.delivery.city || null,
+        p_delivery_region: input.delivery.region || null,
+        p_delivery_phone: input.delivery.phone,
+        p_delivery_notes: input.delivery.notes || null,
+        p_payment_method: input.payment.method,
+        p_items: input.items.map((item) => ({
+          product_id: item.productId,
+          seller_id: item.sellerId,
+          title: item.title,
+          image_url: item.image_url,
+          price_per_unit: item.price_per_kg,
+          unit: item.unit,
+          quantity: item.quantity,
+          line_total: item.price_per_kg * item.quantity,
+        })),
+      }
+    );
+
+    if (error) {
+      console.error('RPC create_order error:', error);
+      throw error;
     }
 
-    const { order } = await res.json();
-    return order;
+    /* Récupérer la commande complète */
+    const { data: order, error: fetchError } = await supabase
+      .from('orders')
+      .select('*, items:order_items(*)')
+      .eq('id', orderId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    return order as Order;
   },
 
   /* ══════════════════════════════════════════════════════════
      Annuler une commande
      ══════════════════════════════════════════════════════════ */
   async cancel(id: string, reason?: string): Promise<Order> {
-    const res = await fetch(`/api/orders/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'cancel', reason }),
-    });
+    const supabase = createClient();
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Erreur annulation');
-    }
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: reason || "Annulée par l'acheteur",
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-    const { order } = await res.json();
-    return order;
+    if (error) throw error;
+    return data as Order;
   },
 
   /* ══════════════════════════════════════════════════════════
-     Mettre à jour le statut (vendeur)
+     Mettre à jour le statut
      ══════════════════════════════════════════════════════════ */
   async updateStatus(id: string, status: OrderStatus): Promise<Order> {
-    const res = await fetch(`/api/orders/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'update_status', status }),
-    });
+    const supabase = createClient();
 
-    if (!res.ok) throw new Error('Erreur mise à jour');
-    const { order } = await res.json();
-    return order;
+    const updates: any = { status };
+    if (status === 'delivered') {
+      updates.delivered_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Order;
   },
 };

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { orderService } from '@/features/orders';
 import {
   DELIVERY_OPTIONS,
@@ -16,6 +17,8 @@ import {
 
 export function useCheckout() {
   const { items, subtotal, clearCart } = useCart();
+  const { profile } = useAuth();   /* ✅ DANS le hook */
+
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [delivery, setDelivery] = useState<DeliveryInfo>({
     option: 'standard',
@@ -76,7 +79,6 @@ export function useCheckout() {
     setPayment((p) => ({ ...p, ...patch }));
   };
 
-  /* Validation par étape */
   const canContinue = useMemo(() => {
     switch (step) {
       case 'cart':
@@ -103,19 +105,58 @@ export function useCheckout() {
             (payment.cardCvv || '').length >= 3
           );
         }
-        return true; /* cash_on_delivery */
+        return true;
       default:
         return true;
     }
   }, [step, items, delivery, payment]);
 
   const submitOrder = async () => {
-    /* TODO: appel API pour créer la commande */
-    const newOrderId = `AF-${Date.now().toString(36).toUpperCase()}`;
-    setOrderId(newOrderId);
-    clearCart();
-    setStep('confirmation');
-    return newOrderId;
+    if (!profile?.id) throw new Error('Non authentifié');
+
+    try {
+      const order = await orderService.create(
+        {
+          items: items.map((item) => ({
+            productId: item.productId,
+            title: item.title,
+            image_url: item.image_url,
+            price_per_kg: item.price_per_kg,
+            unit: item.unit,
+            quantity: item.quantity,
+            sellerId: item.sellerId,
+          })),
+          delivery: {
+            option: delivery.option,
+            address: delivery.address,
+            city: delivery.city,
+            region: delivery.region,
+            phone: delivery.phone,
+            notes: delivery.notes,
+          },
+          payment: {
+            method: payment.method,
+            phone: payment.phone,
+          },
+          summary: {
+            subtotal: summary.subtotal,
+            deliveryCost: summary.deliveryCost,
+            serviceFee: summary.serviceFee,
+            discount: summary.discount,
+            total: summary.total,
+          },
+        },
+        profile.id
+      );
+
+      setOrderId(order.order_number);
+      clearCart();
+      setStep('confirmation');
+      return order.order_number;
+    } catch (error: any) {
+      console.error('Erreur commande:', error);
+      throw error;
+    }
   };
 
   return {
