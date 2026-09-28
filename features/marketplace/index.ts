@@ -10,3 +10,4 @@ export * from './components/SearchBar';
 export * from './components/ProductCard';
 export * from './components/AdsSidebar';
 export * from './components/Marketplace';
+export { GroupSaleCard } from './components/GroupSaleCard';

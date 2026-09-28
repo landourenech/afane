@@ -42,7 +42,7 @@ export function MobileHeader({ username }: MobileHeaderProps) {
             className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
             aria-label="Rechercher"
           >
-            <Search className="h-5 w-5 text-gray-700" />
+            {/* <Search className="h-5 w-5 text-gray-700" /> */}
           </button>
 
           <button

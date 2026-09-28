@@ -9,3 +9,4 @@ export * from './components/MessageInput';
 export * from './hooks/use-user-search';
 export * from './components/NewConversationModal';
 export * from './hooks/use-presence';
+export { ContactSellerButton } from './components/ContactSellerButton';

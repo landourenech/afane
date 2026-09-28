@@ -22,7 +22,7 @@ export interface MobileTab {
   icon: LucideIcon;
 }
 
-const TAB_HOME: MobileTab = { title: "Explore", url: "/explore", icon: Home };
+const TAB_HOME: MobileTab = { title: "Explore", url: "/explore", icon: Compass };
 const TAB_MESSAGES: MobileTab = { title: "Messages", url: "/messages", icon: MessageCircle };
 const TAB_PROFILE: MobileTab = { title: "Paramètres", url: "/settings", icon: Settings };
 
