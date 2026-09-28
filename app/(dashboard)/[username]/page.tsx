@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const username = params?.username as string;
   const { user, profile } = useAuth();
-  const { stats, loading } = useDashboardStats(user?.uid, profile?.role);
+  const { stats, loading } = useDashboardStats(profile?.id, profile?.role);
 
   const firstName = profile?.display_name?.split(' ')[0] || 'Utilisateur';
   const roleTabs = getMobileTabs(profile?.role);

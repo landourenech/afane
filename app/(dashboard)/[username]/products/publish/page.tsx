@@ -12,7 +12,6 @@ import {
   AlertCircle,
   CheckCircle,
   ImagePlus,
-  Sparkles,
   DollarSign,
   Package,
   Clock,
@@ -55,9 +54,7 @@ export default function PublishPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+      const [showAdvanced, setShowAdvanced] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,37 +112,7 @@ export default function PublishPage() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Analyse AI automatique
-  useEffect(() => {
-    const analyze = async () => {
-      if (title.length < 5) return;
-      
-      setIsAnalyzing(true);
-      try {
-        const response = await fetch('/api/ai/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, description }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setSuggestedCategory(data.category);
-          
-          if (!mainCategory && data.confidence > 0.7) {
-            setMainCategory(data.category);
-          }
-        }
-      } catch (error) {
-        console.error('AI analysis error:', error);
-      } finally {
-        setIsAnalyzing(false);
-      }
-    };
-
-    const timer = setTimeout(analyze, 1500);
-    return () => clearTimeout(timer);
-  }, [title, description]);
+  // Analyse AI désactivée
 
   const handleSubmit = async () => {
     if (!profile) return;
@@ -452,13 +419,7 @@ export default function PublishPage() {
               />
               <div className="flex justify-between mt-1">
                 <span className="text-xs text-gray-500">{title.length}/100 caractères</span>
-                {isAnalyzing && (
-                  <span className="text-xs text-blue-500 flex items-center">
-                    <Sparkles className="h-3 w-3 mr-1 animate-pulse" />
-                    Analyse...
-                  </span>
-                )}
-              </div>
+</div>
             </div>
           </div>
 
