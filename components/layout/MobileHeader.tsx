@@ -54,6 +54,18 @@ export function MobileHeader({ username }: MobileHeaderProps) {
             {/* Badge non-lu (à connecter plus tard) */}
             <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full hidden" />
           </button>
+          <button
+            onClick={() => router.push(`/${username}/checkout`)}
+            className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+            aria-label="Panier"
+          >
+            <ShoppingBag className="h-5 w-5 text-gray-700" />
+            {count > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-[var(--afane-orange)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </button>
 
           <Link
             href={`/${username}/profile`}
@@ -73,18 +85,7 @@ export function MobileHeader({ username }: MobileHeaderProps) {
               </div>
             )}
           </Link>
-          <button
-  onClick={() => router.push(`/${username}/checkout`)}
-  className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-  aria-label="Panier"
->
-  <ShoppingBag className="h-5 w-5 text-gray-700" />
-  {count > 0 && (
-    <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-[var(--afane-orange)] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-      {count}
-    </span>
-  )}
-</button>
+          
         </div>
       </div>
     </header>

@@ -2,6 +2,7 @@ export * from './types';
 export * from './data/categories';
 export * from './services/marketplace.service';
 export * from './hooks/use-marketplace';
+export * from './hooks/use-hide-on-scroll';
 export * from './components/Checkbox';
 export * from './components/PriceSlider';
 export * from './components/FilterSidebar';

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Package, X } from 'lucide-react';
 import { useMarketplace } from '../hooks/use-marketplace';
+import { useHideOnScroll } from '../hooks/use-hide-on-scroll';
 import { useCart } from '@/features/checkout';
 import { SearchBar } from './SearchBar';
 import { FilterSidebar } from './FilterSidebar';
@@ -11,11 +12,14 @@ import { ProductCard } from './ProductCard';
 import { AdsCarousel } from './AdsCarousel';
 import type { Product } from '../types';
 
-
 export function Marketplace() {
   const params = useParams();
   const username = params?.username as string;
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  /* Ref du conteneur scrollable (colonne produits) */
+  const productsScrollRef = useRef<HTMLDivElement>(null);
+  const hideSearch = useHideOnScroll(productsScrollRef);
 
   const {
     filters,
@@ -26,6 +30,7 @@ export function Marketplace() {
     resetFilters,
     activeFiltersCount,
   } = useMarketplace();
+
   const { addItem } = useCart();
 
   const handleAddToCart = (product: Product) => {
@@ -43,7 +48,7 @@ export function Marketplace() {
   };
 
   const handleToggleFavorite = (product: Product) => {
-    console.log('Favori:', product.title,);
+    console.log('Favori:', product.title);
   };
 
   return (
@@ -60,11 +65,11 @@ export function Marketplace() {
         </div>
       </div>
 
-      {/* ═══ Corps : 3 colonnes à scroll indépendant ═══ */}
+      {/* ═══ Corps : 3 colonnes ═══ */}
       <div className="flex-1 min-h-0">
         <div className="max-w-[1400px] mx-auto h-full grid grid-cols-1 lg:grid-cols-[260px_1fr_300px] xl:grid-cols-[280px_1fr_320px]">
 
-          {/* ═══ COLONNE 1 : Filtres — scroll indépendant ═══ */}
+          {/* ═══ COLONNE 1 : Filtres (desktop) — scroll indépendant ═══ */}
           <div className="hidden lg:block h-full overflow-y-auto border-r border-[var(--border-primary)] px-4 py-4 scrollbar-thin">
             <FilterSidebar
               filters={filters}
@@ -76,71 +81,82 @@ export function Marketplace() {
           </div>
 
           {/* ═══ COLONNE 2 : Produits — scroll indépendant ═══ */}
-          <div className="h-full overflow-y-auto px-4 py-4 scrollbar-thin">
-            {/* Recherche + tri */}
-            <SearchBar
-              filters={filters}
-              onUpdate={updateFilter}
-              onToggleMobileFilters={() => setMobileFiltersOpen(true)}
-              activeCount={activeFiltersCount}
-            />
+          <div
+            ref={productsScrollRef}
+            className="relative h-full overflow-y-auto scrollbar-thin"
+          >
+            {/* Barre de recherche — auto-hide on scroll */}
+            <div
+              className={`sticky top-0 z-20 bg-[var(--bg-secondary)] px-4 pt-4 pb-3 transition-transform duration-300 ease-out ${
+                hideSearch ? '-translate-y-full' : 'translate-y-0'
+              }`}
+            >
+              <SearchBar
+                filters={filters}
+                onUpdate={updateFilter}
+                onToggleMobileFilters={() => setMobileFiltersOpen(true)}
+                activeCount={activeFiltersCount}
+              />
+            </div>
 
             {/* Grille produits */}
-            {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)] overflow-hidden animate-pulse"
-                  >
-                    <div className="aspect-square bg-[var(--bg-tertiary)]" />
-                    <div className="p-3.5 space-y-2">
-                      <div className="h-4 bg-[var(--bg-tertiary)] rounded w-3/4" />
-                      <div className="h-3 bg-[var(--bg-tertiary)] rounded w-1/2" />
-                      <div className="h-6 bg-[var(--bg-tertiary)] rounded w-1/3" />
-                      <div className="h-8 bg-[var(--bg-tertiary)] rounded-full" />
+            <div className="px-4 pb-6">
+              {loading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className="bg-[var(--bg-primary)] rounded-2xl border border-[var(--border-primary)] overflow-hidden animate-pulse"
+                    >
+                      <div className="aspect-square bg-[var(--bg-tertiary)]" />
+                      <div className="p-3.5 space-y-2">
+                        <div className="h-4 bg-[var(--bg-tertiary)] rounded w-3/4" />
+                        <div className="h-3 bg-[var(--bg-tertiary)] rounded w-1/2" />
+                        <div className="h-6 bg-[var(--bg-tertiary)] rounded w-1/3" />
+                        <div className="h-8 bg-[var(--bg-tertiary)] rounded-full" />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : products.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="p-4 bg-[var(--bg-tertiary)] rounded-full mb-3">
-                  <Package className="h-8 w-8 text-[var(--text-tertiary)]" />
-                </div>
-                <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
-                  Aucun produit trouvé
-                </p>
-                <p className="text-xs text-[var(--text-secondary)]">
-                  Essayez de modifier vos filtres
-                </p>
-              </div>
-            ) : (
-              <>
-                <p className="text-[11px] text-[var(--text-tertiary)] mb-3">
-                  {products.length} produit{products.length > 1 ? 's' : ''}
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 pb-6">
-                  {products.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      username={username}
-                      onAddToCart={handleAddToCart}
-                      onToggleFavorite={handleToggleFavorite}
-                    />
                   ))}
                 </div>
-              </>
-            )}
+              ) : products.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="p-4 bg-[var(--bg-tertiary)] rounded-full mb-3">
+                    <Package className="h-8 w-8 text-[var(--text-tertiary)]" />
+                  </div>
+                  <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                    Aucun produit trouvé
+                  </p>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Essayez de modifier vos filtres
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-[11px] text-[var(--text-tertiary)] mb-3">
+                    {products.length} produit{products.length > 1 ? 's' : ''}
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
+                    {products.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        username={username}
+                        onAddToCart={handleAddToCart}
+                        onToggleFavorite={handleToggleFavorite}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
 
-            {/* Pubs mobile (dans le scroll produit) */}
-            <div className="lg:hidden pb-6">
-              <AdsCarousel />
+              {/* Pubs mobile (dans le scroll produit) */}
+              <div className="lg:hidden pt-6">
+                <AdsCarousel />
+              </div>
             </div>
           </div>
 
-          {/* ═══ COLONNE 3 : Pubs — carrousel auto ═══ */}
+          {/* ═══ COLONNE 3 : Pubs (desktop) — statique ═══ */}
           <div className="hidden lg:block h-full overflow-y-auto border-l border-[var(--border-primary)] px-4 py-4 scrollbar-thin">
             <AdsCarousel />
           </div>

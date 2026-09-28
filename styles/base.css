@@ -215,3 +215,16 @@ code {
     padding-bottom: 0;
   }
 }
+
+/* ══════════════════════════════════════════════════════════
+   EXCEPTION : Liens de navigation mobile
+   ══════════════════════════════════════════════════════════ */
+
+[aria-label="Navigation mobile"] a {
+  color: inherit;
+  text-decoration: none;
+}
+
+[aria-label="Navigation mobile"] a:hover {
+  color: inherit;
+}

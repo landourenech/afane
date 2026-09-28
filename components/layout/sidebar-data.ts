@@ -12,7 +12,6 @@ import {
   BookOpen,
   Map,
   Bell,
-  ShoppingBag,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
@@ -32,7 +31,6 @@ export interface MenuItem {
 export const mainMenuItems: MenuItem[] = [
   { title: "Accueil", url: "", icon: Home },
   { title: "Explorer", url: "/explore", icon: Compass },
-  { title: "Panier", url: "/checkout", icon: ShoppingBag },
   { title: "Messages", url: "/messages", icon: MessageCircle },
   { title: "Notifications", url: "/notifications", icon: Bell },
 
