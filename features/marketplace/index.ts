@@ -11,3 +11,6 @@ export * from './components/ProductCard';
 export * from './components/AdsSidebar';
 export * from './components/Marketplace';
 export { GroupSaleCard } from './components/GroupSaleCard';
+export { GroupParticipants } from './components/GroupParticipants';
+export * from './services/group-sale.service';
+export * from './hooks/use-group-sale';
