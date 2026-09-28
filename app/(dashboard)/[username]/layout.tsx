@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
-import NotificationsDropdown from '@/components/NotificationsDropdown';
+import NotificationsDropdown from '@/features/notifications/components/NotificationsDropdown';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { MobileHeader } from '@/components/layout/MobileHeader';
