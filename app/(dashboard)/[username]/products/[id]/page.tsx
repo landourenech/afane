@@ -8,12 +8,11 @@ import Link from 'next/link';
 import {
   ArrowLeft, Package, MapPin, Calendar, Tag,
   ShoppingCart, Pencil, Trash2, Share2, Heart,
-  Users, Eye, AlertCircle,
+  Users, AlertCircle,
 } from 'lucide-react';
 import { ContactSellerButton } from '@/features/messages';
-import { GroupSaleCard } from '@/features/marketplace';
+import { GroupSaleCard, ProposalModal } from '@/features/marketplace';
 
-/* Regex UUID */
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function ProductDetailPage() {
@@ -30,10 +29,10 @@ export default function ProductDetailPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [favorited, setFavorited] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [proposalOpen, setProposalOpen] = useState(false);   /* ✅ ICI */
 
   useEffect(() => {
     const load = async () => {
-      /* ✅ Vérifier que l'ID est un UUID valide */
       if (!productId || !UUID_REGEX.test(productId)) {
         setError('Ce produit n\'est pas disponible (ID invalide)');
         setLoading(false);
@@ -90,7 +89,6 @@ export default function ProductDetailPage() {
     }
   };
 
-  /* ── Loading ── */
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -99,7 +97,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  /* ── Erreur ── */
   if (error || !product) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
@@ -255,6 +252,17 @@ export default function ProductDetailPage() {
                   productTitle={product.title}
                   variant="outline"
                 />
+
+                {/* Bouton proposer vente collective */}
+                {!isGroupSale && (
+                  <button
+                    onClick={() => setProposalOpen(true)}
+                    className="w-full h-12 flex items-center justify-center gap-2 bg-[var(--afane-orange)]/10 text-[var(--afane-orange)] border-2 border-[var(--afane-orange)]/30 font-bold rounded-full hover:bg-[var(--afane-orange)] hover:text-white transition-all active:scale-[0.98]"
+                  >
+                    <Users className="h-5 w-5" />
+                    Proposer une vente collective
+                  </button>
+                )}
               </div>
             ) : (
               <div className="flex gap-2">
@@ -330,6 +338,18 @@ export default function ProductDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Modal proposition collective */}
+      <ProposalModal
+        isOpen={proposalOpen}
+        onClose={() => setProposalOpen(false)}
+        publication={{
+          id: product.id,
+          title: product.title,
+          price: product.price,
+          unit: product.unit,
+        }}
+      />
     </div>
   );
 }
