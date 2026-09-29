@@ -11,7 +11,7 @@ import {
   Users, AlertCircle,
 } from 'lucide-react';
 import { ContactSellerButton } from '@/features/messages';
-import { GroupSaleCard, ProposalModal } from '@/features/marketplace';
+import { GroupSaleCard, ProposalModal, ProposalsList } from '@/features/marketplace';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -283,8 +283,9 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {isGroupSale && !isOwner && (
+            {isGroupSale && (
               <GroupSaleCard
+                title={product.title}
                 publicationId={product.id}
                 basePrice={product.price}
                 groupPrice={product.group_price || product.price}

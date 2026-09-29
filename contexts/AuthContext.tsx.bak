@@ -1,41 +1,34 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-} from 'react';
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
   signInWithRedirect,
   getRedirectResult,
-  signOut,
+  signOut, 
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   sendEmailVerification,
-  User as FirebaseUser,
+  User as FirebaseUser 
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { createClient } from '@/lib/supabase/client';
-import { UserProfile } from '@/types/user';
 import {
   setCookie,
   getCookie,
+  deleteCookie,
   clearAllAuthCookies,
+  hasFunctionalConsent,
   ESSENTIAL_COOKIES,
   FUNCTIONAL_COOKIES,
+  COOKIE_DURATIONS,
 } from '@/lib/cookies';
+import { auth } from '@/lib/firebase';
+import { createClient } from '@/lib/supabase/client';
+import { UserProfile } from '@/types/user';
 
-/* ══════════════════════════════════════════════════════════
-   INTERFACE
-   ══════════════════════════════════════════════════════════ */
-
+// ============ INTERFACE ============
 interface AuthContextType {
   user: FirebaseUser | null;
   profile: UserProfile | null;
@@ -43,12 +36,7 @@ interface AuthContextType {
   isEmailVerified: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string
-  ) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   logout: () => Promise<void>;
@@ -71,10 +59,7 @@ const AuthContext = createContext<AuthContextType>({
   refreshProfile: async () => {},
 });
 
-/* ══════════════════════════════════════════════════════════
-   PROVIDER
-   ══════════════════════════════════════════════════════════ */
-
+// ============ PROVIDER ============
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -83,30 +68,92 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const syncInProgress = useRef(false);
   const supabase = createClient();
 
-  /* Gérer la redirection Google */
+  // Gérer le résultat de la redirection Google
   useEffect(() => {
     getRedirectResult(auth)
       .then((result) => {
-        if (result) console.log('✅ Connexion Google via redirect réussie');
+        if (result) {
+          console.log('✅ Connexion Google via redirect réussie');
+        }
       })
-      .catch((error) => console.error('❌ Erreur redirect Google:', error));
+      .catch((error) => {
+        console.error('❌ Erreur redirect Google:', error);
+      });
   }, []);
 
-  /* ══════════════════════════════════════════════════════════
-     SYNCHRONISATION — session Supabase TOUJOURS créée
-     ══════════════════════════════════════════════════════════ */
+  // Synchronisation SANS cookies
+  const syncWithoutCookies = useCallback(async (firebaseUser: FirebaseUser) => {
+    console.log('🔄 Sync sans cookies pour:', firebaseUser.email);
+    
+    try {
+      const response = await fetch('/api/auth/sync-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+        }),
+      });
 
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profile) {
+          setProfile(data.profile);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur sync sans cookies:', error);
+    }
+  }, []);
+
+  // Synchronisation AVEC cookies
   const syncUser = useCallback(async (firebaseUser: FirebaseUser) => {
     if (syncInProgress.current) {
       console.log('🔄 Sync déjà en cours, ignoré');
       return;
     }
 
+    if (!hasFunctionalConsent()) {
+      console.log('⚠️ Consentement cookies non donné');
+      await syncWithoutCookies(firebaseUser);
+      return;
+    }
+
+    const cachedUid = getCookie(ESSENTIAL_COOKIES.SYNC_UID);
+    const cachedTime = getCookie(ESSENTIAL_COOKIES.SYNC_TIME);
+    
+    if (cachedUid === firebaseUser.uid && cachedTime) {
+      const lastSync = parseInt(cachedTime);
+      const now = Date.now();
+      const FIVE_MINUTES = 5 * 60 * 1000;
+      
+      if (now - lastSync < FIVE_MINUTES) {
+        console.log('✅ Sync récente, utilisation du cache');
+        
+        try {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('firebase_uid', firebaseUser.uid)
+            .maybeSingle();
+
+          if (profileData) {
+            setProfile(profileData as UserProfile);
+          }
+        } catch (error) {
+          console.error('Erreur chargement profil:', error);
+        }
+        
+        return;
+      }
+    }
+
     syncInProgress.current = true;
     console.log('🔄 Début sync pour:', firebaseUser.email);
 
     try {
-      /* 1. API sync (crée ou récupère le profil) */
       const response = await fetch('/api/auth/sync-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,17 +171,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('✅ Profil synchronisé:', data.profile.id);
           setProfile(data.profile);
 
-          /* Cookies essentiels (toujours) */
           setCookie(ESSENTIAL_COOKIES.SYNC_UID, firebaseUser.uid);
           setCookie(ESSENTIAL_COOKIES.SYNC_TIME, Date.now().toString());
-
-          /* Cookies fonctionnels (préférences) */
           setCookie(FUNCTIONAL_COOKIES.PROFILE_ID, data.profile.id);
           setCookie(FUNCTIONAL_COOKIES.USER_ROLE, data.profile.role || 'user');
-          setCookie(
-            FUNCTIONAL_COOKIES.ONBOARDING_DONE,
-            (data.profile.onboarding_completed || false).toString()
-          );
+          setCookie(FUNCTIONAL_COOKIES.ONBOARDING_DONE, (data.profile.onboarding_completed || false).toString());
+          
+          // Sauvegarder le username
           if (data.profile.username) {
             setCookie(FUNCTIONAL_COOKIES.USERNAME, data.profile.username);
           }
@@ -143,72 +186,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ API sync échouée:', response.status);
       }
 
-      /* 2. ✅ SESSION SUPABASE — TOUJOURS CRÉÉE (essentiel au proxy) */
-      if (firebaseUser.email) {
-        try {
-          const { error: sessionError } = await supabase.auth.signInWithPassword({
-            email: firebaseUser.email,
-            password: firebaseUser.uid,
-          });
-
-          if (sessionError) {
-            if (sessionError.message?.includes('already registered')) {
-              console.log('ℹ️ Session Supabase déjà active');
-            } else {
-              console.log('⚠️ Session Supabase:', sessionError.message);
-            }
-          } else {
-            console.log('✅ Session Supabase créée');
-          }
-        } catch (sessionError: any) {
-          console.log('⚠️ Session Supabase (non bloquant):', sessionError.message);
-        }
+      try {
+        await supabase.auth.signInWithPassword({
+          email: firebaseUser.email!,
+          password: firebaseUser.uid,
+        });
+        console.log('✅ Session Supabase créée');
+      } catch (sessionError: any) {
+        console.log('⚠️ Session (non bloquant):', sessionError.message);
       }
+
     } catch (error) {
       console.error('❌ Erreur sync:', error);
     } finally {
       syncInProgress.current = false;
     }
-  }, [supabase]);
-
-  /* ══════════════════════════════════════════════════════════
-     ÉCOUTE FIREBASE
-     ══════════════════════════════════════════════════════════ */
+  }, [supabase, syncWithoutCookies]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('👤 État auth:', firebaseUser?.email || 'Déconnecté');
       setUser(firebaseUser);
       setIsEmailVerified(firebaseUser?.emailVerified || false);
-
+      
       if (firebaseUser) {
         await syncUser(firebaseUser);
       } else {
         setProfile(null);
         clearAllAuthCookies();
       }
-
+      
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [syncUser]);
 
-  /* ══════════════════════════════════════════════════════════
-     MÉTHODES D'AUTHENTIFICATION
-     ══════════════════════════════════════════════════════════ */
-
+  // ============ MÉTHODES D'AUTHENTIFICATION ============
+  
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-
+    
     try {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      if (
-        error.code === 'auth/popup-blocked' ||
-        error.code === 'auth/popup-closed-by-user'
-      ) {
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
         console.log('⚠️ Popup bloqué, utilisation de redirect');
         await signInWithRedirect(auth, provider);
       } else {
@@ -228,12 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUpWithEmail = async (
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string
-  ) => {
+  const signUpWithEmail = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(result.user);
@@ -262,12 +280,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('✅ Email de vérification renvoyé');
       } catch (error: any) {
         console.error('❌ Erreur envoi vérification:', error);
-
+        
         if (error.code === 'auth/too-many-requests') {
-          throw new Error(
-            'Trop de demandes. Veuillez attendre quelques minutes avant de réessayer.'
-          );
+          throw new Error('Trop de demandes. Veuillez attendre quelques minutes avant de réessayer.');
         }
+        
         throw error;
       }
     }
@@ -277,7 +294,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       await signOut(auth);
+      
       clearAllAuthCookies();
+      
       setProfile(null);
       setUser(null);
       setIsEmailVerified(false);
@@ -292,27 +311,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!profile) throw new Error('No user logged in');
 
     try {
-      /* Supabase direct (API supprimée) */
-      const { data: updatedProfile, error } = await supabase
-        .from('profiles')
-        .update({
+      const response = await fetch('/api/profile/complete-onboarding', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileId: profile.id,
           ...data,
-          onboarding_completed: true,
-        })
-        .eq('id', profile.id)
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) throw error;
-
-      setProfile(updatedProfile);
-
-      setCookie(FUNCTIONAL_COOKIES.ONBOARDING_DONE, 'true');
-      setCookie(FUNCTIONAL_COOKIES.USER_ROLE, updatedProfile.role);
-      if (updatedProfile.username) {
-        setCookie(FUNCTIONAL_COOKIES.USERNAME, updatedProfile.username);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to complete onboarding');
       }
 
+      const updatedProfile = await response.json();
+      setProfile(updatedProfile);
+      
+      if (hasFunctionalConsent()) {
+        setCookie(FUNCTIONAL_COOKIES.ONBOARDING_DONE, 'true');
+        setCookie(FUNCTIONAL_COOKIES.USER_ROLE, updatedProfile.role);
+        
+        if (updatedProfile.username) {
+          setCookie(FUNCTIONAL_COOKIES.USERNAME, updatedProfile.username);
+        }
+      }
+      
+      // ✅ Rediriger vers /{username} au lieu de /dashboard
       const username = updatedProfile.username || updatedProfile.id;
       window.location.href = `/${username}`;
     } catch (error) {
@@ -328,22 +353,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        loading,
-        isEmailVerified,
-        signInWithGoogle,
-        signInWithEmail,
-        signUpWithEmail,
-        resetPassword,
-        resendVerificationEmail,
-        logout,
-        completeOnboarding,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading,
+      isEmailVerified,
+      signInWithGoogle,
+      signInWithEmail,
+      signUpWithEmail,
+      resetPassword,
+      resendVerificationEmail,
+      logout,
+      completeOnboarding,
+      refreshProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );

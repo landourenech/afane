@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Star, Heart, ShoppingCart } from 'lucide-react';
+import { Star, Heart, ShoppingCart, Users } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import type { Product } from '../types';
 
 interface ProductCardProps {
@@ -12,9 +14,9 @@ interface ProductCardProps {
 }
 
 const BADGE_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  local:     { bg: 'bg-[var(--afane-green)]',  text: 'text-white',        label: 'Local' },
-  premium:   { bg: 'bg-[var(--afane-yellow)]', text: 'text-[#0c4428]',    label: 'Premium' },
-  exclusive: { bg: 'bg-[var(--afane-orange)]', text: 'text-white',        label: 'Exclusif' },
+  local:     { bg: 'bg-[var(--afane-green)]',  text: 'text-white',     label: 'Local' },
+  premium:   { bg: 'bg-[var(--afane-yellow)]', text: 'text-[#0c4428]', label: 'Premium' },
+  exclusive: { bg: 'bg-[var(--afane-orange)]', text: 'text-white',     label: 'Collectif' },
 };
 
 export function ProductCard({
@@ -23,6 +25,31 @@ export function ProductCard({
   onAddToCart,
   onToggleFavorite,
 }: ProductCardProps) {
+  const [groupStats, setGroupStats] = useState<{ count: number; quantity: number; min: number; complete: boolean } | null>(null);
+
+  /* Charge la progression si vente groupée */
+  useEffect(() => {
+    const isGroup = product.badges.includes('exclusive');
+    if (!isGroup) return;
+
+    const supabase = createClient();
+    supabase
+      .from('group_sale_progress')
+      .select('participants_count, total_quantity, min_group_quantity, is_complete')
+      .eq('publication_id', product.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setGroupStats({
+            count: data.participants_count || 0,
+            quantity: data.total_quantity || 0,
+            min: data.min_group_quantity || 0,
+            complete: data.is_complete || false,
+          });
+        }
+      });
+  }, [product.id, product.badges]);
+
   const handleCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -35,6 +62,10 @@ export function ProductCard({
     onToggleFavorite?.(product);
   };
 
+  const percent = groupStats && groupStats.min > 0
+    ? Math.min(100, (groupStats.quantity / groupStats.min) * 100)
+    : 0;
+
   return (
     <Link
       href={`/${username}/products/${product.id}`}
@@ -45,7 +76,7 @@ export function ProductCard({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={product.image_url}
-          alt={product.title}
+          alt=""
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
 
@@ -91,6 +122,31 @@ export function ProductCard({
         <h3 className="font-semibold text-[13px] text-[var(--text-primary)] line-clamp-2 leading-snug mb-2 min-h-[2.5rem]">
           {product.title}
         </h3>
+
+        {/* ✅ Progression groupée (si applicable) */}
+        {groupStats && (
+          <div className="mb-2.5">
+            <div className="flex items-center justify-between text-[10px] mb-1">
+              <span className="flex items-center gap-1 text-[var(--afane-orange)] font-semibold">
+                <Users className="h-3 w-3" />
+                {groupStats.count} participant{groupStats.count > 1 ? 's' : ''}
+              </span>
+              <span className="font-semibold text-[var(--text-tertiary)]">
+                {groupStats.quantity}/{groupStats.min}
+              </span>
+            </div>
+            <div className="h-1.5 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  groupStats.complete
+                    ? 'bg-[var(--afane-green)]'
+                    : 'bg-gradient-to-r from-[var(--afane-orange)] to-[var(--afane-yellow)]'
+                }`}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Vendeur + note */}
         <div className="flex items-center justify-between gap-2 mb-2.5">

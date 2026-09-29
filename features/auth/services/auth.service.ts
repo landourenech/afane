@@ -44,15 +44,24 @@ export const authService = {
   /**
    * Compléter l'onboarding
    */
-  async completeOnboarding(profileId: string, data: any): Promise<UserProfile | null> {
-    const response = await fetch('/api/profile/complete-onboarding', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profileId, ...data }),
-    });
+ async completeOnboarding(profileId: string, data: any): Promise<UserProfile | null> {
+  const supabase = createClient();
 
-    if (!response.ok) return null;
+  const { data: updated, error } = await supabase
+    .from('profiles')
+    .update({
+      ...data,
+      onboarding_completed: true,
+    })
+    .eq('id', profileId)
+    .select()
+    .single();
 
-    return (await response.json()) as UserProfile;
-  },
+  if (error) {
+    console.error('completeOnboarding error:', error);
+    return null;
+  }
+
+  return updated as UserProfile;
+},
 };

@@ -15,3 +15,4 @@ export { GroupParticipants } from './components/GroupParticipants';
 export * from './services/group-sale.service';
 export * from './hooks/use-group-sale';
 export { ProposalModal } from './components/ProposalModal';
+export { ProposalsList } from './components/ProposalsList';

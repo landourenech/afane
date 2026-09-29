@@ -32,6 +32,7 @@ export function Marketplace() {
     resetFilters,
     activeFiltersCount,
   } = useMarketplace();
+  const { priceBounds } = useMarketplace();
 
   const { addItem } = useCart();
 
@@ -104,6 +105,8 @@ export function Marketplace() {
           <div className="hidden lg:block h-full overflow-y-auto border-r border-[var(--border-primary)] px-4 py-4 scrollbar-thin">
             <FilterSidebar
               filters={filters}
+              priceBounds={priceBounds}
+              priceBounds={priceBounds}
               onToggle={toggleArrayFilter as any}
               onUpdate={updateFilter}
               onReset={resetFilters}
@@ -213,6 +216,8 @@ export function Marketplace() {
             </div>
             <FilterSidebar
               filters={filters}
+              priceBounds={priceBounds}
+              priceBounds={priceBounds}
               onToggle={toggleArrayFilter as any}
               onUpdate={updateFilter}
               onReset={resetFilters}

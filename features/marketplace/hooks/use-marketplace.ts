@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { marketplaceService } from '../services/marketplace.service';
-import { PRICE_BOUNDS } from '../types';
+import { marketplaceService, type PriceBounds } from '../services/marketplace.service';
 import type { Product, MarketplaceFilters } from '../types';
 
 const DEFAULT_FILTERS: MarketplaceFilters = {
   categories: [],
   seller_types: [],
   regions: [],
-  price_min: PRICE_BOUNDS.min,
-  price_max: PRICE_BOUNDS.max,
+  price_min: 0,
+  price_max: 0,        /* ✅ 0 = "pas de limite" (dynamique) */
   delivery_modes: [],
   badges: [],
   search: '',
@@ -21,6 +20,20 @@ export function useMarketplace() {
   const [filters, setFilters] = useState<MarketplaceFilters>(DEFAULT_FILTERS);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [priceBounds, setPriceBounds] = useState<PriceBounds>({ min: 0, max: 100000 });
+
+  /* Charger les bornes de prix dynamiques au démarrage */
+  useEffect(() => {
+    marketplaceService.getPriceBounds().then((bounds) => {
+      setPriceBounds(bounds);
+      /* Initialiser les filtres avec les vraies bornes */
+      setFilters((prev) => ({
+        ...prev,
+        price_min: bounds.min,
+        price_max: bounds.max,
+      }));
+    });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -43,7 +56,6 @@ export function useMarketplace() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  /** Toggle une valeur dans un tableau (multi-select) */
   const toggleArrayFilter = <K extends keyof MarketplaceFilters>(
     key: K,
     value: string
@@ -57,7 +69,13 @@ export function useMarketplace() {
     });
   };
 
-  const resetFilters = () => setFilters(DEFAULT_FILTERS);
+  const resetFilters = () => {
+    setFilters({
+      ...DEFAULT_FILTERS,
+      price_min: priceBounds.min,
+      price_max: priceBounds.max,
+    });
+  };
 
   const activeFiltersCount =
     filters.categories.length +
@@ -65,13 +83,15 @@ export function useMarketplace() {
     filters.regions.length +
     filters.delivery_modes.length +
     filters.badges.length +
-    (filters.price_min !== PRICE_BOUNDS.min ? 1 : 0) +
-    (filters.price_max !== PRICE_BOUNDS.max ? 1 : 0);
+    (filters.price_min !== priceBounds.min || filters.price_max !== priceBounds.max
+      ? 1
+      : 0);
 
   return {
     filters,
     products,
     loading,
+    priceBounds,
     updateFilter,
     toggleArrayFilter,
     resetFilters,

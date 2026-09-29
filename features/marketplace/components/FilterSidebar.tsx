@@ -8,13 +8,13 @@ import {
   DELIVERY_MODES,
   BADGES,
 } from '../data/categories';
-import { PRICE_BOUNDS } from '../types';
 import { PriceSlider } from './PriceSlider';
 import { Checkbox } from './Checkbox';
 import type { MarketplaceFilters } from '../types';
 
 interface FilterSidebarProps {
   filters: MarketplaceFilters;
+  priceBounds: { min: number; max: number };
   onToggle: (key: keyof MarketplaceFilters, value: string) => void;
   onUpdate: <K extends keyof MarketplaceFilters>(
     key: K,
@@ -26,6 +26,7 @@ interface FilterSidebarProps {
 
 export function FilterSidebar({
   filters,
+  priceBounds,
   onToggle,
   onUpdate,
   onReset,
@@ -33,7 +34,6 @@ export function FilterSidebar({
 }: FilterSidebarProps) {
   return (
     <div className="space-y-6 pb-6">
-      {/* Reset */}
       {activeCount > 0 && (
         <button
           onClick={onReset}
@@ -61,14 +61,14 @@ export function FilterSidebar({
         </div>
       </section>
 
-      {/* Prix */}
+      {/* Prix — bornes dynamiques */}
       <section>
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] mb-2">
-          Prix (FCFA/kg)
+          Prix (FCFA)
         </h3>
         <PriceSlider
-          min={PRICE_BOUNDS.min}
-          max={PRICE_BOUNDS.max}
+          min={priceBounds.min}
+          max={priceBounds.max}
           valueMin={filters.price_min}
           valueMax={filters.price_max}
           onChangeMin={(v) => onUpdate('price_min', v)}
@@ -76,7 +76,6 @@ export function FilterSidebar({
         />
       </section>
 
-      {/* Type de vendeur */}
       <section>
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] mb-2">
           Type de vendeur
@@ -93,7 +92,6 @@ export function FilterSidebar({
         </div>
       </section>
 
-      {/* Région */}
       <section>
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] mb-2">
           Localisation
@@ -110,7 +108,6 @@ export function FilterSidebar({
         </div>
       </section>
 
-      {/* Livraison */}
       <section>
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] mb-2">
           Livraison
@@ -127,7 +124,6 @@ export function FilterSidebar({
         </div>
       </section>
 
-      {/* Badges */}
       <section>
         <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] mb-2">
           Badges

@@ -1,166 +1,175 @@
-import type { Product, MarketplaceFilters } from '../types';
+import { createClient } from '@/lib/supabase/client';
+import type {
+  Product,
+  MarketplaceFilters,
+  SellerType,
+  ProductBadge,
+  DeliveryMode,
+} from '../types';
 
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    title: 'Mangues Kent fraîches',
-    image_url: '/produits.png',
-    price_per_kg: 2500,
-    currency: 'FCFA',
-    quantity_available: 150,
-    unit: 'kg',
-    rating: 4.8,
-    reviews_count: 32,
-    seller: { id: 's1', name: 'Ferme Nzeng-Ayong', avatar_url: null, type: 'producer', verified: true },
-    location: { city: 'Libreville', region: 'Estuaire', country: 'Gabon' },
-    badges: ['local', 'premium'],
-    category: 'fruits',
-    delivery_modes: ['pickup', 'delivery'],
-    in_stock: true,
-  },
-  {
-    id: '2',
-    title: 'Maïs jaune en sac',
-    image_url: '/produits.png',
-    price_per_kg: 800,
-    currency: 'FCFA',
-    quantity_available: 500,
-    unit: 'kg',
-    rating: 4.5,
-    reviews_count: 18,
-    seller: { id: 's2', name: 'Coopérative du Woleu', avatar_url: null, type: 'cooperative', verified: true },
-    location: { city: 'Oyem', region: 'Woleu-Ntem', country: 'Gabon' },
-    badges: ['local'],
-    category: 'cereales',
-    delivery_modes: ['pickup', 'delivery', 'express'],
-    in_stock: true,
-  },
-  {
-    id: '3',
-    title: 'Huile de palme rouge premium',
-    image_url: '/produits.png',
-    price_per_kg: 3500,
-    currency: 'FCFA',
-    quantity_available: 80,
-    unit: 'litre',
-    rating: 4.9,
-    reviews_count: 45,
-    seller: { id: 's3', name: 'Kengue Bio', avatar_url: null, type: 'shop', verified: true },
-    location: { city: 'Lambaréné', region: 'Moyen-Ogooué', country: 'Gabon' },
-    badges: ['premium', 'exclusive'],
-    category: 'transformation',
-    delivery_modes: ['delivery', 'express'],
-    in_stock: true,
-  },
-  {
-    id: '4',
-    title: 'Poulets fermiers vivants',
-    image_url: '/produits.png',
-    price_per_kg: 4500,
-    currency: 'FCFA',
-    quantity_available: 40,
-    unit: 'kg',
-    rating: 4.7,
-    reviews_count: 12,
-    seller: { id: 's4', name: 'Élevage Bilé', avatar_url: null, type: 'producer', verified: false },
-    location: { city: 'Franceville', region: 'Haut-Ogooué', country: 'Gabon' },
-    badges: ['local'],
-    category: 'elevage',
-    delivery_modes: ['pickup'],
-    in_stock: true,
-  },
-  {
-    id: '5',
-    title: 'Manioc frais',
-    image_url: '/produits.png',
-    price_per_kg: 500,
-    currency: 'FCFA',
-    quantity_available: 200,
-    unit: 'kg',
-    rating: 4.3,
-    reviews_count: 8,
-    seller: { id: 's5', name: 'Ferme Mbeng', avatar_url: null, type: 'producer', verified: false },
-    location: { city: 'Mitzic', region: 'Woleu-Ntem', country: 'Gabon' },
-    badges: ['local'],
-    category: 'tubercules',
-    delivery_modes: ['pickup', 'delivery'],
-    in_stock: true,
-  },
-  {
-    id: '6',
-    title: 'Poissons fumés (Machoiron)',
-    image_url: '/produits.png',
-    price_per_kg: 6000,
-    currency: 'FCFA',
-    quantity_available: 25,
-    unit: 'kg',
-    rating: 4.6,
-    reviews_count: 22,
-    seller: { id: 's6', name: 'Pêche Ogooué', avatar_url: null, type: 'cooperative', verified: true },
-    location: { city: 'Port-Gentil', region: 'Ogooué-Maritime', country: 'Gabon' },
-    badges: ['premium'],
-    category: 'peche',
-    delivery_modes: ['delivery', 'express'],
-    in_stock: true,
-  },
-];
+export interface PriceBounds {
+  min: number;
+  max: number;
+}
 
 export const marketplaceService = {
+  /* ✅ Calcule les bornes de prix réelles depuis la DB */
+  async getPriceBounds(): Promise<PriceBounds> {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from('publications')
+      .select('price')
+      .eq('status', 'active');
+
+    if (error || !data || data.length === 0) {
+      return { min: 0, max: 100000 };
+    }
+
+    const prices = data.map((r: any) => Number(r.price)).filter((p) => p > 0);
+    const min = Math.floor(Math.min(...prices));
+    const max = Math.ceil(Math.max(...prices));
+
+    /* Arrondi "propre" */
+    const step = max > 100000 ? 10000 : max > 10000 ? 1000 : 100;
+    const roundedMin = Math.floor(min / step) * step;
+    const roundedMax = Math.ceil(max / step) * step;
+
+    return {
+      min: roundedMin,
+      max: roundedMax,
+    };
+  },
+
   async getProducts(filters: MarketplaceFilters): Promise<Product[]> {
-    await new Promise((r) => setTimeout(r, 200));
-    let products = [...MOCK_PRODUCTS];
+    const supabase = createClient();
 
-    /* Multi-select catégories */
+    let query = supabase
+      .from('publications')
+      .select(`
+        id,
+        title,
+        description,
+        images,
+        price,
+        quantity,
+        unit,
+        main_category,
+        location,
+        status,
+        sale_type,
+        group_price,
+        min_group_quantity,
+        bulk_discount,
+        created_at,
+        user_id,
+        seller:profiles!publications_user_id_fkey(
+          id,
+          display_name,
+          username,
+          avatar_url,
+          role,
+          city,
+          region,
+          verification_status
+        )
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
     if (filters.categories.length > 0) {
-      products = products.filter((p) => filters.categories.includes(p.category));
+      query = query.in('main_category', filters.categories);
     }
 
-    /* Multi-select vendeurs */
-    if (filters.seller_types.length > 0) {
-      products = products.filter((p) => filters.seller_types.includes(p.seller.type));
-    }
-
-    /* Multi-select régions */
     if (filters.regions.length > 0) {
-      products = products.filter((p) => filters.regions.includes(p.location.region));
+      query = query.in('location', filters.regions);
     }
 
-    /* Prix */
-    products = products.filter(
-      (p) => p.price_per_kg >= filters.price_min && p.price_per_kg <= filters.price_max
-    );
+    /* ✅ Filtre prix dynamique — ignoré si les 2 bornes sont identiques (par défaut) */
+    const isDefaultPrice =
+      filters.price_min === 0 && filters.price_max === 0;
 
-    /* Multi-select livraison (OR : au moins 1 mode en commun) */
-    if (filters.delivery_modes.length > 0) {
-      products = products.filter((p) =>
-        p.delivery_modes.some((m) => filters.delivery_modes.includes(m))
-      );
+    if (!isDefaultPrice) {
+      query = query
+        .gte('price', filters.price_min)
+        .lte('price', filters.price_max);
     }
 
-    /* Recherche */
     if (filters.search) {
-      const q = filters.search.toLowerCase();
-      products = products.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.seller.name.toLowerCase().includes(q) ||
-          p.location.city.toLowerCase().includes(q)
+      query = query.ilike('title', `%${filters.search}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('getProducts error:', error);
+      return [];
+    }
+
+    console.log('📦 getProducts:', data?.length || 0, 'produits chargés');
+
+    let products: Product[] = (data || []).map((row: any) => {
+      const seller = Array.isArray(row.seller) ? row.seller[0] : row.seller;
+
+      const badges: ProductBadge[] = [];
+      if (row.sale_type === 'group') badges.push('exclusive');
+      if (seller?.verification_status === 'verified') badges.push('premium');
+
+      return {
+        id: row.id,
+        title: row.title,
+        image_url: row.images?.[0] || '/produits.png',
+        price_per_kg: Number(row.price),
+        currency: 'FCFA',
+        quantity_available: Number(row.quantity),
+        unit: row.unit as any,
+        rating: 4.5,
+        reviews_count: 0,
+        seller: {
+          id: seller?.id || row.user_id,
+          name: seller?.display_name || 'Vendeur',
+          avatar_url: seller?.avatar_url || null,
+          type: (seller?.role || 'producer') as SellerType,
+          verified: seller?.verification_status === 'verified',
+        },
+        location: {
+          city: row.location || seller?.city || '',
+          region: seller?.region || '',
+          country: 'Gabon',
+        },
+        badges,
+        category: row.main_category || 'autre',
+        delivery_modes: ['pickup', 'delivery'] as DeliveryMode[],
+        in_stock: Number(row.quantity) > 0,
+      };
+    });
+
+    if (filters.seller_types.length > 0) {
+      products = products.filter((p) =>
+        filters.seller_types.includes(p.seller.type)
       );
     }
 
-    /* Multi-select badges (OR) */
     if (filters.badges.length > 0) {
       products = products.filter((p) =>
         filters.badges.some((b) => p.badges.includes(b))
       );
     }
 
-    /* Tri */
     switch (filters.sort) {
-      case 'price_asc':  products.sort((a, b) => a.price_per_kg - b.price_per_kg); break;
-      case 'price_desc': products.sort((a, b) => b.price_per_kg - a.price_per_kg); break;
-      case 'rating':     products.sort((a, b) => b.rating - a.rating); break;
-      case 'popular':    products.sort((a, b) => b.reviews_count - a.reviews_count); break;
+      case 'price_asc':
+        products.sort((a, b) => a.price_per_kg - b.price_per_kg);
+        break;
+      case 'price_desc':
+        products.sort((a, b) => b.price_per_kg - a.price_per_kg);
+        break;
+      case 'rating':
+        products.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'popular':
+        products.sort((a, b) => b.reviews_count - a.reviews_count);
+        break;
     }
 
     return products;

@@ -1,7 +1,5 @@
 'use client';
 
-import { PRICE_BOUNDS } from '../types';
-
 interface PriceSliderProps {
   min: number;
   max: number;
@@ -19,14 +17,16 @@ export function PriceSlider({
   onChangeMin,
   onChangeMax,
 }: PriceSliderProps) {
-  const range = max - min;
+  const range = max - min || 1;
+
+  /* Step dynamique selon l'amplitude */
+  const step = max > 100000 ? 1000 : max > 10000 ? 100 : 10;
 
   const percentMin = ((valueMin - min) / range) * 100;
   const percentMax = ((valueMax - min) / range) * 100;
 
   return (
     <div className="py-2">
-      {/* Affichage valeurs */}
       <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-3">
         <span className="font-semibold text-[var(--afane-green)]">
           {valueMin.toLocaleString('fr-FR')} F
@@ -36,12 +36,8 @@ export function PriceSlider({
         </span>
       </div>
 
-      {/* Slider double */}
       <div className="relative h-6">
-        {/* Track */}
         <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1 bg-[var(--bg-tertiary)] rounded-full" />
-
-        {/* Fill */}
         <div
           className="absolute top-1/2 -translate-y-1/2 h-1 bg-[var(--afane-green)] rounded-full"
           style={{
@@ -50,12 +46,11 @@ export function PriceSlider({
           }}
         />
 
-        {/* Input Min */}
         <input
           type="range"
           min={min}
           max={max}
-          step={PRICE_BOUNDS.step}
+          step={step}
           value={valueMin}
           onChange={(e) => {
             const v = Number(e.target.value);
@@ -64,12 +59,11 @@ export function PriceSlider({
           className="absolute top-0 left-0 w-full h-6 appearance-none bg-transparent pointer-events-none slider-thumb"
         />
 
-        {/* Input Max */}
         <input
           type="range"
           min={min}
           max={max}
-          step={PRICE_BOUNDS.step}
+          step={step}
           value={valueMax}
           onChange={(e) => {
             const v = Number(e.target.value);
@@ -78,34 +72,6 @@ export function PriceSlider({
           className="absolute top-0 left-0 w-full h-6 appearance-none bg-transparent pointer-events-none slider-thumb"
         />
       </div>
-
-      <style jsx>{`
-        .slider-thumb::-webkit-slider-thumb {
-          appearance: none;
-          pointer-events: all;
-          width: 16px;
-          height: 16px;
-          border-radius: 9999px;
-          background: var(--afane-orange);
-          border: 2px solid #ffffff;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-          cursor: pointer;
-          transition: background 150ms;
-        }
-        .slider-thumb::-webkit-slider-thumb:hover {
-          background: var(--afane-green);
-        }
-        .slider-thumb::-moz-range-thumb {
-          pointer-events: all;
-          width: 16px;
-          height: 16px;
-          border-radius: 9999px;
-          background: var(--afane-orange);
-          border: 2px solid #ffffff;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-          cursor: pointer;
-        }
-      `}</style>
     </div>
   );
 }

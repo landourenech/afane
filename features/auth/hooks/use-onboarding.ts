@@ -1,45 +1,70 @@
 'use client';
 
 import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { OnboardingInput } from '../schemas/onboarding.schema';
+
+/* Seul dateOfBirth diffère (camelCase form → snake_case DB) */
+function mapFields(data: any): Record<string, any> {
+  const mapped: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (key === 'dateOfBirth') {
+      mapped['date_of_birth'] = value;
+    } else {
+      mapped[key] = value;
+    }
+  }
+  return mapped;
+}
 
 export function useOnboarding() {
-  const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const { profile, refreshProfile } = useAuth();
 
-  const submit = async (data: OnboardingInput) => {
-    if (!profile) {
+  const submit = async (data: any) => {
+    if (!profile?.id) {
       setError('Utilisateur non connecté');
-      return;
+      return false;
     }
 
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError('');
+      const supabase = createClient();
+      const mapped = mapFields(data);
 
-      const response = await fetch('/api/profile/complete-onboarding', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profileId: profile.id, ...data }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to complete onboarding');
+      /* Filtrer les valeurs vides pour éviter d'écraser avec '' */
+      const clean: Record<string, any> = {};
+      for (const [k, v] of Object.entries(mapped)) {
+        if (v !== '' && v !== null && v !== undefined) {
+          clean[k] = v;
+        }
       }
 
-      const updatedProfile = await response.json();
-      const destination =
-        updatedProfile.role === 'admin'
-          ? '/admin'
-          : `/${updatedProfile.username || profile.id}`;
+      const { data: updated, error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          ...clean,
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString(),
+        })
+        .eq('id', profile.id)
+        .select()
+        .single();
 
-      window.location.href = destination;
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+
+      const username = updated.username || updated.id;
+      window.location.href = `/${username}`;
+      return true;
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la finalisation');
-      throw err;
+      console.error('❌ Erreur onboarding:', err);
+      setError(err.message || 'Erreur lors de l\'enregistrement');
+      return false;
     } finally {
       setLoading(false);
     }

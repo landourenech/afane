@@ -38,13 +38,13 @@ export const mainMenuItems: MenuItem[] = [
     title: "Mes Produits",
     url: "/products",
     icon: Package,
-    roles: ["producer", "cooperative", "supplier"],
+    roles: ["producer", "cooperative", "supplier", "admin"],
   },
   {
     title: "Commandes",
     url: "/orders",
     icon: ShoppingCart,
-    roles: ["producer", "cooperative", "supplier", "buyer"],
+    roles: ["producer", "cooperative", "supplier", "buyer", "admin"],
   },
 
   {

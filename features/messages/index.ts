@@ -10,3 +10,7 @@ export * from './hooks/use-user-search';
 export * from './components/NewConversationModal';
 export * from './hooks/use-presence';
 export { ContactSellerButton } from './components/ContactSellerButton';
+export { GroupChatPanel } from './components/GroupChatPanel';
+export { groupChatService } from './services/group-chat.service';
+export { useGroupChat } from './hooks/use-group-chat';
+export type { ConversationMember, GroupConversation } from './services/group-chat.service';
