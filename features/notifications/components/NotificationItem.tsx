@@ -1,6 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import {
+  TrendingDown,
+  CheckCircle,
+  XCircle, useRouter } from 'next/navigation';
 import {
   Bell, Package, ShoppingCart, MessageCircle, Users,
   AlertCircle, Clock, X, Trash2,
@@ -24,6 +27,10 @@ function getIcon(type: string) {
     case 'new_message':         return <MessageCircle className="h-4 w-4 text-blue-500" />;
     case 'new_follower':        return <Users className="h-4 w-4 text-pink-500" />;
     case 'price_alert':         return <AlertCircle className="h-4 w-4 text-orange-500" />;
+    case 'new_proposal':        return <TrendingDown className="h-4 w-4 text-orange-500" />;
+    case 'proposal_accepted':   return <CheckCircle className="h-4 w-4 text-green-500" />;
+    case 'proposal_rejected':   return <XCircle className="h-4 w-4 text-red-500" />;
+    case 'group_new_member':    return <Users className="h-4 w-4 text-blue-500" />;
     default:                    return <Bell className="h-4 w-4 text-gray-500" />;
   }
 }
@@ -38,6 +45,10 @@ function getIconBg(type: string): string {
     case 'new_message':         return 'bg-blue-100';
     case 'new_follower':        return 'bg-pink-100';
     case 'price_alert':         return 'bg-orange-100';
+    case 'new_proposal':        return 'bg-orange-100';
+    case 'proposal_accepted':   return 'bg-green-100';
+    case 'proposal_rejected':   return 'bg-red-100';
+    case 'group_new_member':    return 'bg-blue-100';
     default:                    return 'bg-gray-100';
   }
 }

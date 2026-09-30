@@ -65,3 +65,32 @@ export const notificationService = {
       .eq('id', id);
   },
 };
+
+/* ══════════════════════════════════════════════════════════
+   CREATE — pour usage interne (propositions, groupes, etc.)
+   ══════════════════════════════════════════════════════════ */
+
+export async function createNotification(params: {
+  user_id: string;
+  type: string;
+  title: string;
+  content?: string;
+  link?: string;
+}): Promise<boolean> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from('notifications').insert({
+    user_id: params.user_id,
+    type: params.type,
+    title: params.title,
+    content: params.content || null,
+    link: params.link || null,
+    read: false,
+  });
+
+  if (error) {
+    console.error('createNotification error:', error);
+    return false;
+  }
+  return true;
+}
