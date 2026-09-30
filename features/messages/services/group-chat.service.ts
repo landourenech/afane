@@ -78,3 +78,25 @@ export const groupChatService = {
     return data as GroupConversation | null;
   },
 };
+
+/* ══════════════════════════════════════════════════════════
+   UPDATE NAME
+   ══════════════════════════════════════════════════════════ */
+
+export async function updateGroupName(
+  conversationId: string,
+  newName: string
+): Promise<boolean> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from('conversations')
+    .update({ name: newName.trim(), updated_at: new Date().toISOString() })
+    .eq('id', conversationId);
+
+  if (error) {
+    console.error('updateGroupName error:', error);
+    return false;
+  }
+  return true;
+}

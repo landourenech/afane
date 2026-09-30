@@ -9,8 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
 import { useGroupSale } from '../hooks/use-group-sale';
 import { GroupParticipants } from './GroupParticipants';
-import { GroupChatPanel } from '@/features/messages';
-import { getOrCreateConversation } from '@/features/messages';
+import { getOrCreateConversation, groupChatService } from '@/features/messages';
 
 interface GroupSaleCardProps {
   title: string;
@@ -43,9 +42,9 @@ export function GroupSaleCard({
     profile?.id
   );
   const [actionLoading, setActionLoading] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
   const [showAllMembers, setShowAllMembers] = useState(false);
   const [contactLoading, setContactLoading] = useState(false);
+  const [groupChatLoading, setGroupChatLoading] = useState(false);
 
   const handleToggle = async () => {
     if (!profile?.id) return;
@@ -68,6 +67,22 @@ export function GroupSaleCard({
       console.error(err);
     } finally {
       setContactLoading(false);
+    }
+  };
+
+  /* ✅ Redirection vers le chat de groupe */
+  const handleGroupChat = async () => {
+    if (!profile?.id) return;
+    setGroupChatLoading(true);
+    try {
+      const convId = await groupChatService.getOrCreate(publicationId);
+      if (convId) {
+        router.push(`/${username}/messages?conversation=${convId}`);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setGroupChatLoading(false);
     }
   };
 
@@ -265,10 +280,15 @@ export function GroupSaleCard({
 
             {/* Chat du groupe — visible par vendeur ET acheteurs */}
             <button
-              onClick={() => setChatOpen(true)}
-              className="w-full h-11 flex items-center justify-center gap-2 bg-[var(--afane-green)] text-white text-sm font-bold rounded-full hover:bg-[var(--afane-orange)] transition-colors"
+              onClick={handleGroupChat}
+              disabled={groupChatLoading}
+              className="w-full h-11 flex items-center justify-center gap-2 bg-[var(--afane-green)] text-white text-sm font-bold rounded-full hover:bg-[var(--afane-orange)] transition-colors disabled:opacity-50"
             >
-              <Users className="h-4 w-4" />
+              {groupChatLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Users className="h-4 w-4" />
+              )}
               {isSeller ? 'Chat du groupe (acheteurs)' : 'Chat du groupe'}
               {(progress?.participants_count || 0) > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-[10px]">
@@ -280,14 +300,6 @@ export function GroupSaleCard({
         </div>
       </div>
 
-      {/* Panel chat groupe */}
-      {chatOpen && (
-        <GroupChatPanel
-          publicationId={publicationId}
-          publicationTitle={title}
-          onClose={() => setChatOpen(false)}
-        />
-      )}
     </>
   );
 }
