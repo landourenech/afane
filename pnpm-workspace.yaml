@@ -2,3 +2,24 @@ allowBuilds:
   '@firebase/util': set this to true or false
   protobufjs: set this to true or false
   unrs-resolver: set this to true or false
+minimumReleaseAgeExclude:
+  - '@next/env@16.3.8'
+  - '@next/swc-darwin-arm64@16.3.8'
+  - '@next/swc-darwin-x64@16.3.8'
+  - '@next/swc-linux-arm64-gnu@16.3.8'
+  - '@next/swc-linux-arm64-musl@16.3.8'
+  - '@next/swc-linux-x64-gnu@16.3.8'
+  - '@next/swc-linux-x64-musl@16.3.8'
+  - '@next/swc-win32-arm64-msvc@16.3.8'
+  - '@next/swc-win32-x64-msvc@16.3.8'
+  - next@16.3.8
+  - '@next/eslint-plugin-next@16.3.8'
+  - eslint-config-next@16.3.8
+  - qs@6.15.4 || 6.16.0
+  - fast-uri@3.1.6 || 3.1.7 || 3.1.8
+  - js-yaml@4.3.2
+  - hono@4.13.5 || 4.13.7
+  - undici@7.29.1
+  - ip-address@10.5.1 || 10.7.1
+  - brace-expansion@1.1.19 || 1.1.20 || 1.1.21 || 5.0.10 || 5.0.11 || 5.0.12
+  - '@grpc/grpc-js@1.13.6'

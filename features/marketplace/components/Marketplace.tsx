@@ -106,7 +106,6 @@ export function Marketplace() {
             <FilterSidebar
               filters={filters}
               priceBounds={priceBounds}
-              priceBounds={priceBounds}
               onToggle={toggleArrayFilter as any}
               onUpdate={updateFilter}
               onReset={resetFilters}
@@ -216,7 +215,6 @@ export function Marketplace() {
             </div>
             <FilterSidebar
               filters={filters}
-              priceBounds={priceBounds}
               priceBounds={priceBounds}
               onToggle={toggleArrayFilter as any}
               onUpdate={updateFilter}

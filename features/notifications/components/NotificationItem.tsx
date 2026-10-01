@@ -1,12 +1,12 @@
 'use client';
 
-import {
-  TrendingDown,
-  CheckCircle,
-  XCircle, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Bell, Package, ShoppingCart, MessageCircle, Users,
   AlertCircle, Clock, X, Trash2,
+  TrendingDown,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import type { Notification } from '../types';
 
