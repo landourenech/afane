@@ -23,3 +23,4 @@ export { ContactSellerButton } from './components/ContactSellerButton';
 export { GroupChatPanel } from './components/GroupChatPanel';
 export { EditableGroupName } from './components/EditableGroupName';
 export { updateGroupName } from './services/group-chat.service';
+export { getOrCreateCooperativeChat } from './services/group-chat.service';

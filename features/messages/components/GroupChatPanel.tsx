@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Send, Users, Crown, Loader2 } from 'lucide-react';
+import { X, Send, Users, Crown, Loader2, Wheat } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroupChat } from '../hooks/use-group-chat';
 
 interface GroupChatPanelProps {
-  publicationId: string;
-  publicationTitle: string;
+  publicationId?: string;
+  cooperativeId?: string;
+  publicationTitle: string;   /* garde le nom pour compat, sert de titre par défaut */
   onClose: () => void;
 }
 
@@ -26,18 +27,23 @@ interface Message {
 
 export function GroupChatPanel({
   publicationId,
+  cooperativeId,
   publicationTitle,
   onClose,
 }: GroupChatPanelProps) {
   const { profile } = useAuth();
-  const { conversationId, members, loading: membersLoading } = useGroupChat(publicationId);
+  const { conversationId, members, loading: membersLoading } = useGroupChat({
+    publicationId,
+    cooperativeId,
+  });
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  /* Charger messages + Realtime */
+  const isCoop = !!cooperativeId;
+
   useEffect(() => {
     if (!conversationId) return;
     const supabase = createClient();
@@ -89,7 +95,6 @@ export function GroupChatPanel({
     };
   }, [conversationId]);
 
-  /* Auto-scroll */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -125,15 +130,19 @@ export function GroupChatPanel({
 
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]">
-          <div className="p-2 bg-[var(--afane-orange)]/10 rounded-xl">
-            <Users className="h-5 w-5 text-[var(--afane-orange)]" />
+          <div className={`p-2 rounded-xl ${isCoop ? 'bg-[var(--afane-green)]/10' : 'bg-[var(--afane-orange)]/10'}`}>
+            {isCoop ? (
+              <Wheat className="h-5 w-5 text-[var(--afane-green)]" />
+            ) : (
+              <Users className="h-5 w-5 text-[var(--afane-orange)]" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="font-bold text-sm text-[var(--text-primary)] truncate">
               {publicationTitle}
             </h2>
             <p className="text-[11px] text-[var(--text-tertiary)]">
-              {members.length} membre{members.length > 1 ? 's' : ''}
+              {isCoop ? 'Coopérative' : 'Groupe'} · {members.length} membre{members.length > 1 ? 's' : ''}
             </p>
           </div>
           <button
@@ -151,11 +160,11 @@ export function GroupChatPanel({
           </button>
         </div>
 
-        {/* Membres (drawer) */}
+        {/* Membres drawer */}
         {showMembers && (
           <div className="border-b border-[var(--border-primary)] p-3 bg-[var(--bg-tertiary)] max-h-48 overflow-y-auto">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] mb-2">
-              Membres du groupe
+              Membres
             </p>
             <div className="space-y-1.5">
               {members.map((m) => (
@@ -176,7 +185,7 @@ export function GroupChatPanel({
                     {m.user?.display_name || 'Utilisateur'}
                     {m.user_id === profile?.id && ' (vous)'}
                   </span>
-                  {m.role === 'seller' && (
+                  {(m.role === 'seller' || m.role === 'admin') && (
                     <Crown className="h-3 w-3 text-yellow-500" />
                   )}
                 </div>

@@ -100,3 +100,22 @@ export async function updateGroupName(
   }
   return true;
 }
+
+/* ══════════════════════════════════════════════════════════
+   COOPERATIVE CHAT
+   ══════════════════════════════════════════════════════════ */
+
+export async function getOrCreateCooperativeChat(
+  cooperativeId: string
+): Promise<string | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc('get_or_create_cooperative_chat', {
+    p_cooperative_id: cooperativeId,
+  });
+
+  if (error) {
+    console.error('getOrCreateCooperativeChat error:', error);
+    return null;
+  }
+  return data as string;
+}

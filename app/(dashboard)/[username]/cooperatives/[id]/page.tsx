@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -12,6 +13,8 @@ import {
   MembersList,
   useCooperativeDetail,
 } from '@/features/cooperatives';
+import { GroupChatPanel } from '@/features/messages';
+import { MessageCircle } from 'lucide-react';
 
 export default function CooperativeDetailPage() {
   const params = useParams();
@@ -19,6 +22,7 @@ export default function CooperativeDetailPage() {
   const username = params?.username as string;
   const cooperativeId = params?.id as string;
   const { profile } = useAuth();
+  const [chatOpen, setChatOpen] = useState(false);
 
   const {
     cooperative,
@@ -73,6 +77,13 @@ export default function CooperativeDetailPage() {
           <h1 className="flex-1 text-base font-semibold truncate">
             {cooperative.name}
           </h1>
+          <button
+            onClick={() => setChatOpen(true)}
+            className="p-2 rounded-full hover:bg-[var(--bg-hover)] transition-colors"
+            title="Chat coopérative"
+          >
+            <MessageCircle className="h-5 w-5 text-[var(--afane-green)]" />
+          </button>
           {isPresident && (
             <span className="text-[10px] font-bold uppercase bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
               <Crown className="inline h-3 w-3 mr-1" />
@@ -155,16 +166,23 @@ export default function CooperativeDetailPage() {
             </div>
 
             {/* Actions */}
-            {profile?.id !== cooperative.created_by && (
-              <div className="mt-5">
+            <div className="mt-5 space-y-2">
+              {profile?.id !== cooperative.created_by && (
                 <JoinButton
                   isMember={isMember}
                   onJoin={join}
                   onLeave={leave}
                   canLeave={!isPresident}
                 />
-              </div>
-            )}
+              )}
+              <button
+                onClick={() => setChatOpen(true)}
+                className="w-full h-11 flex items-center justify-center gap-2 bg-[var(--afane-green)] text-white text-sm font-bold rounded-full hover:bg-[var(--afane-orange)] transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Ouvrir le chat de la coopérative
+              </button>
+            </div>
           </div>
         </div>
 
@@ -176,6 +194,14 @@ export default function CooperativeDetailPage() {
           />
         </div>
       </div>
+
+      {chatOpen && (
+        <GroupChatPanel
+          cooperativeId={cooperative.id}
+          publicationTitle={cooperative.name}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </div>
   );
 }
