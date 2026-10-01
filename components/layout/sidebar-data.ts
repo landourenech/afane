@@ -31,6 +31,7 @@ export interface MenuItem {
 export const mainMenuItems: MenuItem[] = [
   { title: "Accueil", url: "", icon: Home },
   { title: "Explorer", url: "/explore", icon: Compass },
+  { title: "Coopératives", url: "/cooperatives", icon: Users },
   { title: "Messages", url: "/messages", icon: MessageCircle },
   { title: "Notifications", url: "/notifications", icon: Bell },
 
